@@ -67,6 +67,10 @@ function InventorySystem.init(Events)
         local index = e.index
         local map = e.map
 
+        --! [BUG] Dropping items on top of eachother deletes the first item(s)
+        --! [BUG] Dropping the last item in your inventory makes the cursor disappear 
+        --! [BUG] Dropping the last item in your inventory gives the logger gets a nil target (maybe increase logger event hook priorities?)
+
         if not entity.inventory or not entity.inventory.items[index] then
             entity.inventory = Inventory.new()
         end
