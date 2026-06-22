@@ -1,5 +1,6 @@
 local Object = require("core.components.object")
 local Interactable = require("core.components.interactable")
+local Position = require("core.components.position")
 local InventorySystem = {}
 
 function InventorySystem.init(Events)
@@ -79,9 +80,9 @@ function InventorySystem.init(Events)
                 type = "item",
                 
                 collides = false,
-                position = entity.position,
+                position = Position.new(entity.position.x, entity.position.y),
                 
-                renderable = item.renderable, --TODO: [BUG] Item objects don't get rendered despite having a renderable component
+                renderable = item.renderable,
             })
 
             item_obj.item = item

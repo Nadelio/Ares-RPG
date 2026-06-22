@@ -1,3 +1,4 @@
+local TableUtils = require("core.utils.table_utils")
 local Map = {}
 Map.__index = Map
 
@@ -32,11 +33,13 @@ function Map:get(x, y)
 end
 
 function Map:add_object(obj)
+    print(TableUtils.tablelength(self.objects))
     self.objects[obj.position.x .. "," .. obj.position.y] = obj
-    print("Added object: " .. obj.name .. "\n\tType: " .. obj.type)
+    print("Added object: " .. obj.name .. "\n\tType: " .. obj.type .. "\n\tPosition: " .. tostring(obj.position))
     if obj.renderable then
         print(obj.name .. " has a renderable component\n\tGlyph: " .. obj.renderable.glyph)
     end
+    print(TableUtils.tablelength(self.objects))
 end
 
 function Map:remove_object(obj)

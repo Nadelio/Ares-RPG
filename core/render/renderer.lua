@@ -1,5 +1,6 @@
 local TileStyles = require("core.render.tile_styles")
 local Colors = require("core.render.colors")
+local RarityColors = require("core.render.raritycolors")
 
 local Renderer = {}
 
@@ -20,11 +21,11 @@ function Renderer.build(world, map, preview)
             entity_map[key] = e
         end
     end
-
+    
     for _, obj in pairs(map.objects) do
         object_map[obj.position.x .. "," .. obj.position.y] = obj
     end
-
+    
     if preview then
         for _, step in ipairs(preview) do
             if step.x and step.y then
@@ -56,12 +57,6 @@ function Renderer.build(world, map, preview)
             elseif object_map[key] then
                 local object = object_map[key]
 
-                print(object.position)
-
-                if object.item then
-                    print(object.name .. "is an item!")
-                end
-
                 if object.interactable and object.interactable.selected then
                     line[#line + 1] = {
                         text = object.renderable.glyph,
@@ -70,8 +65,7 @@ function Renderer.build(world, map, preview)
                 elseif object.interactable then
                     local render_color = Colors.reset
                     if object.item then
-                        print(object.name .. "is an item!")
-                        render_color = Colors[object.item.rarity]
+                        render_color = RarityColors[object.item.rarity]
                     end
 
                     line[#line + 1] = {
