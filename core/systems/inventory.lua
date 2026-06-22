@@ -1,6 +1,7 @@
 local Object = require("core.components.object")
 local Interactable = require("core.components.interactable")
 local Position = require("core.components.position")
+local Inventory = require("core.components.inventory")
 local InventorySystem = {}
 
 function InventorySystem.init(Events)
@@ -17,7 +18,7 @@ function InventorySystem.init(Events)
         end
 
         if not entity.inventory then
-            entity.inventory = { items = {} }
+            entity.inventory = Inventory.new()
         end
         
         table.insert(entity.inventory.items, item)
@@ -30,7 +31,7 @@ function InventorySystem.init(Events)
         local index = e.index
 
         if not entity.inventory or not entity.inventory.items[index] then
-            return
+            entity.inventory = Inventory.new()
         end
 
         local item = table.remove(entity.inventory.items, index)
@@ -53,7 +54,7 @@ function InventorySystem.init(Events)
         end
 
         if not entity.inventory then
-            entity.inventory = { items = {} }
+            entity.inventory = Inventory.new()
         end
         
         table.insert(entity.inventory.items, item)
@@ -67,7 +68,7 @@ function InventorySystem.init(Events)
         local map = e.map
 
         if not entity.inventory or not entity.inventory.items[index] then
-            return
+            entity.inventory = Inventory.new()
         end
 
         local item = table.remove(entity.inventory.items, index)

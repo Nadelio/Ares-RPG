@@ -13,9 +13,10 @@ function Chest.new(x, y)
         collides = true,
         position = Position.new(x, y),
 
-        renderable = Renderable.new("C"),
+        renderable = Renderable.new({ glyph = "C" }),
     })
 
+    -- TODO: open up a new UI.box() that contains the chest's inventory
     obj.inventory = Inventory.new({ total_capacity = 10 }) 
     obj.interactable = Interactable.new(function(entity, e) print("You open the chest.") end)
 

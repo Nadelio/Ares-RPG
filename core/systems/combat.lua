@@ -1,5 +1,7 @@
 local Combat = {}
 
+
+--TODO: implement an actual combat system
 function Combat.attack(attacker, defender)
 
     local damage = attacker.unarmed_attack - defender.defense

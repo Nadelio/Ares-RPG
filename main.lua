@@ -6,6 +6,7 @@ local Input = require("core.input")
 local Fonts = require("core.utils.fonts") 
 local Item = require("core.components.item") 
 
+local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer") 
 local UIRenderer = require("core.render.ui_renderer") 
 
@@ -50,7 +51,7 @@ local world = World.new()
 local player = world:add({
     name = "Player",
     position = Position.new(2, 2),
-    renderable = Renderable.new("@"),
+    renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
     stats = Stats.new({ health = 10, movement = 10 }),
     inventory = Inventory.new({}),
     ui = UIState.new(),
@@ -158,7 +159,7 @@ function love.update(dt)
     
     Events.emit("tick", { entity = player }) 
     
-    screen = Renderer.build(world, map, player.turn_preview) 
+    screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile) 
     ui = UIRenderer.build(player) 
 end
 

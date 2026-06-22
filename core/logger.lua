@@ -40,7 +40,7 @@ function Logger:format(event)
 
     if event.type == "move" then
         return string.format(
-            "[Turn %d] MOVE %s (%d,%d -> %d,%d)",
+            "[Action %d] MOVE %s (%d,%d -> %d,%d)",
             event.turn,
             event.data.entity,
             event.data.from.x, event.data.from.y,
@@ -49,7 +49,7 @@ function Logger:format(event)
 
     elseif event.type == "attack" then
         return string.format(
-            "[Turn %d] ATTACK %s -> %s (%d dmg)",
+            "[Action %d] ATTACK %s -> %s (%d dmg)",
             event.turn,
             event.data.attacker,
             event.data.target,
@@ -58,16 +58,44 @@ function Logger:format(event)
 
     elseif event.type == "interact" then
         return string.format(
-            "[Turn %d] INTERACT %s -> %s (%s)",
+            "[Action %d] INTERACT %s -> %s (%s)",
             event.turn,
             event.data.actor,
             event.data.target,
             event.data.type
         ) 
 
+    elseif event.type == "inventory_equip" then
+        return string.format(
+            "[Action %d] EQUIP %s -> %s",
+            event.turn,
+            event.data.target,
+            event.data.actor
+        )
+    elseif event.type == "inventory_unequip" then
+        return string.format(
+            "[Action %d] UNEQUIP %s -> %s",
+            event.turn,
+            event.data.target,
+            event.data.actor
+        )
+    elseif event.type == "inventory_pickup" then
+        return string.format(
+            "[Action %d] PICKUP %s -> %s",
+            event.turn,
+            event.data.target,
+            event.data.actor
+        )
+    elseif event.type == "inventory_drop" then
+        return string.format(
+            "[Action %d] DROP %s -> %s",
+            event.turn,
+            event.data.target,
+            event.data.actor
+        )
     elseif event.type == "level_up" then
         return string.format(
-            "[Turn %d] LEVEL UP %s (+%s %d)",
+            "[Action %d] LEVEL UP %s (+%s %d)",
             event.turn,
             event.data.entity,
             event.data.stat,
@@ -76,7 +104,7 @@ function Logger:format(event)
     end
 
     return string.format(
-        "[Turn %d] %s",
+        "[Action %d] %s",
         event.turn,
         event.type
     ) 
