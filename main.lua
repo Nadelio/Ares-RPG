@@ -90,8 +90,6 @@ function love.load()
     love._openConsole() 
     Fonts.init() 
 
-    print("Font height:", love.graphics.getFont():getHeight()) 
-
     love.graphics.setDefaultFilter("nearest", "nearest") 
     love.window.setTitle("Ares RPG") 
 
