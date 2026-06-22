@@ -30,6 +30,7 @@ frame 3:
 Kinda like these ideas:
 ![alt text](image.png)
 ![alt text](image-1.png)
+![FNAF 3 - Start Sound](https://i.makeagif.com/media/4-03-2015/hwQxBk.gif)
 ```
 frame 1:
 ╭───────────╮
