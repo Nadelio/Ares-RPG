@@ -25,7 +25,8 @@ frame 3:
 │ Quit      │
 ╰───────────╯
 ```
-    - Start menu has a scanline bug that uses the `═` and/or `─`
+
+- Start menu has a scanline bug that uses the `═` and/or `─`
 Kinda like these ideas:
 ![alt text](image.png)
 ![alt text](image-1.png)
