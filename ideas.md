@@ -26,7 +26,7 @@ frame 3:
 ╰───────────╯
 ```
 
-- Start menu has a scanline bug that uses the `═` and/or `─`
+- Start menu has a scanline bug that uses the `═─▀▁▂▃▄▅▆▇█▉` characters
 Kinda like these ideas:
 ![alt text](image.png)
 ![alt text](image-1.png)
@@ -35,22 +35,22 @@ Kinda like these ideas:
 frame 1:
 ╭───────────╮
 │           │
-═════════════
+▅▅▅▅▅▅▅▅▅▅▅▅▅
 │           │
 ─────────────
 ╰───────────╯
 
 frame 2:
 ╭───────────╮
-│           │
+▅▅▅▅▅▅▅▅▅▅▅▅▅
 │           │
 ─────────────
-═════════════
+▀▀▀▀▀▀▀▀▀▀▀▀▀
 ╰───────────╯
 
 frame 3:
 ╭───────────╮
-─────────────
+▀▀▀▀▀▀▀▀▀▀▀▀▀
 │           │
 ═════════════
 │           │
