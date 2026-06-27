@@ -1,5 +1,6 @@
 local RarityColors = require("core.render.raritycolors") 
-local Colors = require("core.render.colors") 
+local Colors = require("core.render.colors")
+local StatSystem = require("core.systems.stats")
 local UI = {} 
 
 function UI.box(title, width, height, content)
@@ -114,12 +115,12 @@ function UI.box(title, width, height, content)
 end
 
 function UI.status(player)
-    local hp = player.stats.current_hp
-    local max_hp = player.stats.health
-    local move = player.stats.current_movement
-    local max_move = player.stats.movement
-    local capacity = player.inventory.current_capacity
-    local max_capacity = player.inventory.total_capacity
+    local hp = player.stats.current.health
+    local max_hp = StatSystem.get(player.stats, "health")
+    local move = player.stats.current.movement
+    local max_move = StatSystem.get(player.stats, "movement")
+    local capacity = player.stats.current.capacity
+    local max_capacity = StatSystem.get(player.stats, "capacity")
 
     local hpColor = Colors.green
 

@@ -1,11 +1,20 @@
-local Inventory = {} 
+local Item = require("core.components.item")
+local RarityColors = require("core.render.raritycolors")
+local Inventory = {}
 
 function Inventory.new(data)
-    return {
-        items = data.items or {},
-        total_capacity = data.total_capacity or 5,
-        current_capacity = data.current_capacity or 0
-    } 
+    local backpack = Item.new({
+        name = "Backpack",
+        description = "A sack used to carry items",
+        rarity = RarityColors.common,
+        bonuses = {
+            capacity = 5
+        }
+    })
+
+    backpack.items = data.items or {}
+
+    return backpack
 end
 
-return Inventory 
+return Inventory

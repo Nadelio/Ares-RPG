@@ -4,7 +4,7 @@ local Logger = require("core.logger")
 local World = require("core.world") 
 local Input = require("core.input") 
 local Fonts = require("core.utils.fonts") 
-local Item = require("core.components.item") 
+local Item = require("core.components.item")
 
 local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer") 
@@ -18,6 +18,7 @@ local LoggerSystem = require("core.systems.logger")
 local InventorySystem = require("core.systems.inventory") 
 local TurnSystem = require("core.systems.turn") 
 local PreviewSystem = require("core.systems.preview") 
+local StatSystem = require("core.systems.stats")
 
 local Position = require("core.components.position") 
 local Renderable = require("core.components.renderable") 
@@ -57,7 +58,7 @@ local player = world:add({
     ui = UIState.new(),
 
     level = 1
-}) 
+})
 
 map:add_object(Chest.new(4, 2)) 
 
@@ -104,14 +105,19 @@ function love.load()
     LevelSystem.init(Events) 
     LoggerSystem.init(Events, logger) 
     InventorySystem.init(Events) 
+    
+    -- manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
+    player.inventory.equipped = true
+    StatSystem.equip(player.stats, player.inventory)
+    table.insert(player.stats.equipped_items, player.inventory)
 
     Events.emit("inventory_add", {
         entity = player,
         item = Item.new({
             name = "Sword",
             description = "A simple bladed weapon",
-            attack = 5,
-            rarity = "legendary"
+            rarity = "legendary",
+            bonuses = { attack = 5},
         }),
     }) 
     Events.emit("inventory_add", {
@@ -119,8 +125,8 @@ function love.load()
         item = Item.new({
             name = "Shield",
             description = "A simple shield",
-            defense = 5,
-            rarity = "common"
+            rarity = "common",
+            bonuses = { defense = 5 }
         }),
     }) 
     Events.emit("inventory_add", {
@@ -131,11 +137,14 @@ function love.load()
         entity = player,
         item = Item.new({
             name = "Fancy Hat",
-            luck = 5,
-            defense = 2,
-            rarity = "epic"
+            rarity = "epic",
+            bonuses = {
+                luck = 5,
+                defense = 2,
+            }
         }),
-    }) 
+    })
+
 end
 
 local screen = {} 

@@ -1,3 +1,4 @@
+local StatSystem = require("core.systems.stats")
 local Object = require("core.components.object")
 local Interactable = require("core.components.interactable")
 local Position = require("core.components.position")
@@ -10,7 +11,7 @@ function InventorySystem.init(Events)
         local entity = e.entity
         local item = e.item
 
-        if entity.inventory.current_capacity + item.size > entity.inventory.total_capacity then
+        if entity.stats.current.capacity + item.size > StatSystem.get(entity.stats, "capacity") then
             Events.emit("inventory_remove", {
                 entity = entity,
                 index = #entity.inventory.items
@@ -22,20 +23,30 @@ function InventorySystem.init(Events)
         end
         
         table.insert(entity.inventory.items, item)
-        entity.inventory.current_capacity = entity.inventory.current_capacity + item.size
+        entity.stats.current.capacity = entity.stats.current.capacity + item.size
 
     end, 100)
 
     Events.on("inventory_remove", function(e) --! VOLATILE, DELETES ITEMS
         local entity = e.entity
         local index = e.index
+        local map = e.map
 
         if not entity.inventory or not entity.inventory.items[index] then
             entity.inventory = Inventory.new()
         end
-
+        
         local item = table.remove(entity.inventory.items, index)
-        entity.inventory.current_capacity = entity.inventory.current_capacity - item.size
+
+        if item.equipped then
+            Events.emit("inventory_unequip", {
+                entity = entity,
+                index = index,
+                map = map
+            })
+        end
+
+        entity.stats.current.capacity = entity.stats.current.capacity - item.size
 
     end, 100)
 
@@ -45,7 +56,7 @@ function InventorySystem.init(Events)
         local item = item_obj.item
         local map = e.map
 
-        if entity.inventory.current_capacity + item.size > entity.inventory.total_capacity then
+        if entity.stats.current.capacity + item.size > StatSystem.get(entity.stats, "capacity") then
             Events.emit("inventory_drop", {
                 entity = entity,
                 index = #entity.inventory.items,
@@ -58,7 +69,7 @@ function InventorySystem.init(Events)
         end
         
         table.insert(entity.inventory.items, item)
-        entity.inventory.current_capacity = entity.inventory.current_capacity + item.size
+        entity.inventory.current.capacity = entity.inventory.current.capacity + item.size
         map:remove_object(item_obj)
     end, 100)
 
@@ -76,7 +87,15 @@ function InventorySystem.init(Events)
         end
 
         local item = table.remove(entity.inventory.items, index)
-        entity.inventory.current_capacity = entity.inventory.current_capacity - item.size
+        entity.stats.current.capacity = entity.stats.current.capacity - item.size
+
+        if item.equipped then
+            Events.emit("inventory_unequip", {
+                entity = entity,
+                index = index,
+                map = map
+            })
+        end
 
         item.dropped = true
         if map then
@@ -103,17 +122,39 @@ function InventorySystem.init(Events)
     Events.on("inventory_equip", function(e)
         local entity = e.entity
         local index = e.index
+        local item = entity.inventory.items[index]
         local map = e.map --? used for if cursed item gets equipped that has negative carry capacity, so entity is forced to drop something (if capacity is overfilled)
+        if item.equipped then
+            return
+        end
 
-        -- TODO: find way to programmatically go through all entries in the table and add them to the player stats (needs to be able to include homebrew stats)
+        item.equipped = true
+
+        StatSystem.equip(entity.stats, item)
+
+        table.insert(entity.stats.equipped_items, item)    
     end, 100)
 
     Events.on("inventory_unequip", function(e)
         local entity = e.entity
         local index = e.index
+        local item = entity.inventory.items[index]
         local map = e.map --? used for if items with carry capacity bonus are unequipped, so entity is forced to drop something (if capacity is overfilled)
 
-        -- TODO: find way to programmatically go through all entries in the table and remove them to the player stats (needs to be able to include homebrew stats)
+        if not item.equipped then
+            return
+        end
+
+        item.equipped = false
+
+        StatSystem.unequip(entity.stats, item)
+
+        for i, equipped in ipairs(entity.stats.equipped_items) do
+            if equipped == item then
+                table.remove(entity.stats.equipped_items, i)
+                break
+            end
+        end    
     end, 100)
 
 end

@@ -1,3 +1,4 @@
+local StatSystem = require("core.systems.stats")
 local HealthSystem = {}
 
 function HealthSystem.init(Events)
@@ -10,12 +11,12 @@ function HealthSystem.init(Events)
             return
         end
 
-        entity.stats.current_hp = math.max(
+        entity.stats.current.health = math.max(
             0,
-            (entity.stats.current_hp or entity.stats.health) - amount
+            (entity.stats.current.health or StatSystem.get(entity.stats, "health")) - amount
         )
 
-        if entity.stats.current_hp <= 0 then
+        if entity.stats.current.health <= 0 then
             entity.dead = true
             Events.emit("death", {
                 entity = entity
@@ -33,9 +34,9 @@ function HealthSystem.init(Events)
             return
         end
 
-        entity.stats.current_hp = math.min(
-            entity.stats.health,
-            (entity.stats.current_hp or 0) + amount
+        entity.stats.current.health = math.min(
+            StatSystem.get(entity.stats, "health"),
+            (entity.stats.current.health or 0) + amount
         )
 
     end, 100)
@@ -43,7 +44,7 @@ function HealthSystem.init(Events)
 end
 
 function HealthSystem.is_alive(entity)
-    return entity.stats and entity.stats.current_hp > 0
+    return entity.stats and entity.stats.current.health > 0
 end
 
 return HealthSystem
