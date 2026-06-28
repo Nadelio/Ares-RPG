@@ -50,7 +50,7 @@ function LoggerSystem.init(Events, logger)
     Events.on("level_up", function(e)
         logger:add("level_up", {
             entity = e.entity.name,
-            levels = e.levels
+            levels = e.amount
         })
     end, -100) 
 

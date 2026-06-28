@@ -4,7 +4,7 @@ function LevelSystem.init(Events)
 
     Events.on("level_up", function(e)
 
-        local entity = e.target
+        local entity = e.entity
         local levels = e.amount or 1
 
         assert(math.type(levels) == "integer", "Cannot add fractional levels")
