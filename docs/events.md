@@ -38,22 +38,20 @@ Parameters:
 ## InventorySystem
 ### `inventory_add`
 This event is emitted whenever an item is inserted directly into an entity's inventory.
-
 > [!WARNING]
 > This event is volatile and may delete items if the entity exceeds its carrying capacity.
 > Use `inventory_pickup` if you want safer inventory behavior.
-\
+
 Parameters:
 - `entity`, the entity receiving the item
 - `item`, the item being added
 
 ### `inventory_remove`
 This event is emitted whenever an item is removed directly from an inventory.
-
 > [!WARNING]
 > This event permanently deletes the item.
 > Use `inventory_drop` if you want the item to be placed back into the world.
-\
+
 Parameters:
 - `entity`, the entity losing the item
 - `index`, the inventory slot to remove
