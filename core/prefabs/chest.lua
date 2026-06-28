@@ -1,8 +1,10 @@
-local Renderable = require("core.components.renderable") 
-local Position   = require("core.components.position") 
-local Interactable = require("core.components.interactable") 
-local Inventory = require("core.components.inventory") 
-local Object = require("core.components.object") 
+local Registry = require("core.registry")
+
+local Renderable = require("core.components.renderable")
+local Position   = require("core.components.position")
+local Interactable = require("core.components.interactable")
+local Inventory = require("core.components.inventory")
+local Object = require("core.components.object")
 
 local Chest = {}
 
@@ -22,5 +24,7 @@ function Chest.new(x, y)
 
     return obj 
 end
+
+Registry.register(Registry.prefabs, "chest", Chest)
 
 return Chest

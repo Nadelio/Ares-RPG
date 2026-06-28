@@ -3,11 +3,12 @@ local Object = require("core.components.object")
 local Interactable = require("core.components.interactable")
 local Position = require("core.components.position")
 local Inventory = require("core.components.inventory")
+
 local InventorySystem = {}
 
 function InventorySystem.init(Events)
 
-    Events.on("inventory_add", function(e) --! VOLATILE, WILL DELETE ITEMS IF OVER CARRY CAPACITY, USE "inventory_pickup" EVENT FOR NON-VOLATILE
+    Events.on("inventory_add", function(e)
         local entity = e.entity
         local item = e.item
 
@@ -27,7 +28,7 @@ function InventorySystem.init(Events)
 
     end, 100)
 
-    Events.on("inventory_remove", function(e) --! VOLATILE, DELETES ITEMS
+    Events.on("inventory_remove", function(e)
         local entity = e.entity
         local index = e.index
         local map = e.map

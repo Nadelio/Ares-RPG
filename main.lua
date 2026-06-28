@@ -1,34 +1,45 @@
-local Map = require("core.map") 
-local Events = require("core.events") 
-local Logger = require("core.logger") 
-local World = require("core.world") 
-local Input = require("core.input") 
-local Fonts = require("core.utils.fonts") 
-local Item = require("core.components.item")
+local Map = require("core.map")
+local Events = require("core.events")
+local Logger = require("core.logger")
+local World = require("core.world")
+local Input = require("core.input")
+local Registry = require("core.registry")
+
+local Fonts = require("core.utils.fonts")
 
 local Colors = require("core.render.colors")
-local Renderer = require("core.render.renderer") 
-local UIRenderer = require("core.render.ui_renderer") 
+local Renderer = require("core.render.renderer")
+local UIRenderer = require("core.render.ui_renderer")
 
-local MovementSystem = require("core.systems.movement") 
-local InputSystem = require("core.systems.input") 
-local LevelSystem = require("core.systems.level") 
-local HealthSystem = require("core.systems.health") 
-local LoggerSystem = require("core.systems.logger") 
-local InventorySystem = require("core.systems.inventory") 
-local TurnSystem = require("core.systems.turn") 
-local PreviewSystem = require("core.systems.preview") 
+--? ALL THIS STUFF NEEDS TO BE MOVED TO `core.registry`
+local MovementSystem = require("core.systems.movement")
+local InputSystem = require("core.systems.input")
+local LevelSystem = require("core.systems.level")
+local HealthSystem = require("core.systems.health")
+local LoggerSystem = require("core.systems.logger")
+local InventorySystem = require("core.systems.inventory")
+local TurnSystem = require("core.systems.turn")
+local PreviewSystem = require("core.systems.preview")
 local StatSystem = require("core.systems.stats")
 
-local Position = require("core.components.position") 
-local Renderable = require("core.components.renderable") 
-local Stats = require("core.components.stats") 
-local Inventory = require("core.components.inventory") 
-local UIState = require("core.components.ui_state") 
+local Item = require("core.components.item")
+local Position = require("core.components.position")
+local Renderable = require("core.components.renderable")
+local Stats = require("core.components.stats")
+local Inventory = require("core.components.inventory")
+local UIState = require("core.components.ui_state")
 
-local Chest = require("content.chest") 
+local Chest = require("core.prefabs.chest")
+--?
 
-local logger = Logger.new() 
+-- TODO: Add registries to avoid this mess ^ (WIP, need to go through and refactor every component and system to use Registry)
+-- TODO: Standardize init(Events, World, Map, Logger) for systems
+-- TODO: Standardize new(data) for components and prefabs
+-- TODO: Standardize mod manifests (with dependency lists so loading is ordered properly) (See: mods/test/mod.lua)
+-- TODO: Make a loader.lua to load core and mods and register everything (via `require(filepath)`)
+-- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
+
+local logger = Logger.new()
 local map = Map.new({
     {
         { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }
@@ -45,9 +56,9 @@ local map = Map.new({
     {
         { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }
     }
-}) 
+})
 
-local world = World.new() 
+local world = World.new()
 
 local player = world:add({
     name = "Player",
@@ -60,9 +71,9 @@ local player = world:add({
     level = 1
 })
 
-map:add_object(Chest.new(4, 2)) 
+map:add_object(Chest.new(4, 2))
 
-world.player = player 
+world.player = player
 
 Events.on("interact", function(e)
 
@@ -85,26 +96,26 @@ Events.on("interact", function(e)
         target.interactable.interact(target, e)
     end
 
-end, 100) 
+end, 100)
 
 
 function love.load()
-    love._openConsole() 
-    Fonts.init() 
+    love._openConsole()
+    Fonts.init()
 
-    love.graphics.setDefaultFilter("nearest", "nearest") 
-    love.window.setTitle("Ares RPG") 
+    love.graphics.setDefaultFilter("nearest", "nearest")
+    love.window.setTitle("Ares RPG")
 
-    love.keyboard.setKeyRepeat(false) 
+    love.keyboard.setKeyRepeat(false)
 
-    TurnSystem.init(world, Events) 
-    InputSystem.init(world, map, Events) 
-    PreviewSystem.init(world, map, Events) 
-    MovementSystem.init(world, map, Events) 
-    HealthSystem.init(Events) 
-    LevelSystem.init(Events) 
-    LoggerSystem.init(Events, logger) 
-    InventorySystem.init(Events) 
+    TurnSystem.init(world, Events)
+    InputSystem.init(world, map, Events)
+    PreviewSystem.init(world, map, Events)
+    MovementSystem.init(world, map, Events)
+    HealthSystem.init(Events)
+    LevelSystem.init(Events)
+    LoggerSystem.init(Events, logger)
+    InventorySystem.init(Events)
     
     -- manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
@@ -119,7 +130,7 @@ function love.load()
             rarity = "legendary",
             bonuses = { attack = 5},
         }),
-    }) 
+    })
     Events.emit("inventory_add", {
         entity = player,
         item = Item.new({
@@ -128,11 +139,11 @@ function love.load()
             rarity = "common",
             bonuses = { defense = 5 }
         }),
-    }) 
+    })
     Events.emit("inventory_add", {
         entity = player,
         item = Item.new({}), -- add unknown item (is cursed)
-    }) 
+    })
     Events.emit("inventory_add", {
         entity = player,
         item = Item.new({
