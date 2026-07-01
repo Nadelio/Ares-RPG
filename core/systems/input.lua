@@ -1,9 +1,9 @@
-local GhostSim = require("core.systems.ghost_sim")
+local Registry = require("core.registry")
 local TurnBuffer = require("core.turn_buffer")
 
 local InputSystem = {}
 
-function InputSystem.init(world, map, Events)
+function InputSystem.init(Events, world, map, logger)
 
     Events.on("input", function(e)
 
@@ -121,5 +121,7 @@ function InputSystem.init(world, map, Events)
     end, 100)
 
 end
+
+Registry.register("systems", "input", InputSystem)
 
 return InputSystem

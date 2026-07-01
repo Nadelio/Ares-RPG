@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local Colors = require("core.render.colors")
 local Renderable = {} 
 
@@ -11,5 +12,7 @@ function Renderable.new(data)
         underline = data.underline or false
     }
 end
+
+Registry.register("components", "renderable", Renderable)
 
 return Renderable 

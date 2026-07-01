@@ -4,6 +4,7 @@ local Logger = require("core.logger")
 local World = require("core.world")
 local Input = require("core.input")
 local Registry = require("core.registry")
+local Loader = require("core.loader")
 
 local Fonts = require("core.utils.fonts")
 
@@ -11,32 +12,27 @@ local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer")
 local UIRenderer = require("core.render.ui_renderer")
 
---? ALL THIS STUFF NEEDS TO BE MOVED TO `core.registry`
-local MovementSystem = require("core.systems.movement")
-local InputSystem = require("core.systems.input")
-local LevelSystem = require("core.systems.level")
-local HealthSystem = require("core.systems.health")
-local LoggerSystem = require("core.systems.logger")
-local InventorySystem = require("core.systems.inventory")
-local TurnSystem = require("core.systems.turn")
-local PreviewSystem = require("core.systems.preview")
-local StatSystem = require("core.systems.stats")
+Loader.load_core_content()
 
-local Item = require("core.components.item")
-local Position = require("core.components.position")
-local Renderable = require("core.components.renderable")
-local Stats = require("core.components.stats")
-local Inventory = require("core.components.inventory")
-local UIState = require("core.components.ui_state")
+local MovementSystem = Registry.resolve("systems", "movement")
+local InputSystem = Registry.resolve("systems", "input")
+local LevelSystem = Registry.resolve("systems", "level")
+local HealthSystem = Registry.resolve("systems", "health")
+local LoggerSystem = Registry.resolve("systems", "logger")
+local InventorySystem = Registry.resolve("systems", "inventory")
+local TurnSystem = Registry.resolve("systems", "turn")
+local PreviewSystem = Registry.resolve("systems", "preview")
+local StatSystem = Registry.resolve("systems", "stats")
 
-local Chest = require("core.prefabs.chest")
---?
+local Item = Registry.resolve("components", "item")
+local Position = Registry.resolve("components", "position")
+local Renderable = Registry.resolve("components", "renderable")
+local Stats = Registry.resolve("components", "stats")
+local Inventory = Registry.resolve("components", "inventory")
+local UIState = Registry.resolve("components", "ui_state")
 
--- TODO: Add registries to avoid this mess ^ (WIP, need to go through and refactor every component and system to use Registry)
--- TODO: Standardize init(Events, World, Map, Logger) for systems
--- TODO: Standardize new(data) for components and prefabs
--- TODO: Standardize mod manifests (with dependency lists so loading is ordered properly) (See: mods/test/mod.lua)
--- TODO: Make a loader.lua to load core and mods and register everything (via `require(filepath)`)
+local Chest = Registry.resolve("prefabs", "chest")
+
 -- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
 
 local logger = Logger.new()
@@ -62,16 +58,16 @@ local world = World.new()
 
 local player = world:add({
     name = "Player",
-    position = Position.new(2, 2),
+    position = Position.new({ x = 2, y = 2 }),
     renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
     stats = Stats.new({ health = 10, movement = 10 }),
     inventory = Inventory.new({}),
-    ui = UIState.new(),
+    ui = UIState.new({}),
 
     level = 1
 })
 
-map:add_object(Chest.new(4, 2))
+map:add_object(Chest.new({x = 4, y = 2}))
 
 world.player = player
 
@@ -108,14 +104,15 @@ function love.load()
 
     love.keyboard.setKeyRepeat(false)
 
-    TurnSystem.init(world, Events)
-    InputSystem.init(world, map, Events)
-    PreviewSystem.init(world, map, Events)
-    MovementSystem.init(world, map, Events)
-    HealthSystem.init(Events)
-    LevelSystem.init(Events)
-    LoggerSystem.init(Events, logger)
-    InventorySystem.init(Events)
+    TurnSystem.init(Events, world, map, logger)
+    InputSystem.init(Events, world, map, logger)
+    PreviewSystem.init(Events, world, map, logger)
+    MovementSystem.init(Events, world, map, logger)
+    HealthSystem.init(Events, world, map, logger)
+    LevelSystem.init(Events, world, map, logger)
+    LoggerSystem.init(Events, world, map, logger)
+    InventorySystem.init(Events, world, map, logger)
+    Loader.load_mod_content(Events, world, map, logger)
     
     -- manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true

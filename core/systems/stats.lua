@@ -1,3 +1,5 @@
+local Registry = require("core.registry")
+
 local StatSystem = {}
 
 function StatSystem.get(stats, stat)
@@ -34,5 +36,7 @@ function StatSystem.modifyBase(stats, stat, amount)
     stats.base[stat] = (stats.base[stat] or 0) + amount
 end
 
+
+Registry.register("systems", "stats", StatSystem)
 
 return StatSystem

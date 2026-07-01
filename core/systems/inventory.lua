@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local StatSystem = require("core.systems.stats")
 local Object = require("core.components.object")
 local Interactable = require("core.components.interactable")
@@ -6,7 +7,7 @@ local Inventory = require("core.components.inventory")
 
 local InventorySystem = {}
 
-function InventorySystem.init(Events)
+function InventorySystem.init(Events, world, map, logger)
 
     Events.on("inventory_add", function(e)
         local entity = e.entity
@@ -105,7 +106,10 @@ function InventorySystem.init(Events)
                 type = "item",
                 
                 collides = false,
-                position = Position.new(entity.position.x, entity.position.y),
+                position = Position.new({
+                    x = entity.position.x,
+                    y = entity.position.y,
+                }),
                 
                 renderable = item.renderable,
             })
@@ -159,5 +163,7 @@ function InventorySystem.init(Events)
     end, 100)
 
 end
+
+Registry.register("systems", "inventory", InventorySystem)
 
 return InventorySystem

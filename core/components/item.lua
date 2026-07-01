@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local Renderable = require("core.components.renderable") 
 local Item = {}
 
@@ -28,5 +29,7 @@ function Item.new(data)
 end
 
 
+
+Registry.register("components", "item", Item)
 
 return Item

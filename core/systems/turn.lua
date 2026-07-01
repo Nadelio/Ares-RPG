@@ -1,6 +1,8 @@
+local Registry = require("core.registry")
+
 local TurnSystem = {} 
 
-function TurnSystem.init(world, Events)
+function TurnSystem.init(Events, world, map, logger)
 
     Events.on("turn_commit", function(e)
 
@@ -40,5 +42,7 @@ function TurnSystem.init(world, Events)
     
 
 end
+
+Registry.register("systems", "turn", TurnSystem)
 
 return TurnSystem 

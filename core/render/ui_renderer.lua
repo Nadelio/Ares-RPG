@@ -1,8 +1,19 @@
-local UI = require("core.render.ui")
+local UI = require("core.systems.ui")
 local Colors = require("core.render.colors")
 
 local UIRenderer = {}
 
+--## TODO: Need to make a way to "register" UI elements to be drawn every frame
+-- Maybe `core.systems.ui.lua` can export `draw()` functions for each table?\
+-- Then make the tables contain positional data and the actual UI content?\
+-- Something like:
+--```
+--function UI.inventory.draw(player) then
+--   return { content = UI.build_inventory(player), width = 24, height = 1 }
+--end
+--```
+-- And then `UIRenderer.build(player)` iterates over every table in `widgets` and combines them?\
+-- Then `UIRenderer.draw(widgets)` draws everything in widgets.output?
 function UIRenderer.build(player)
 
     local widgets = {}

@@ -1,3 +1,5 @@
+local Registry = require("core.registry")
+
 local Stats = {}
 
 local EntityStates = {
@@ -34,5 +36,7 @@ function Stats.new(data)
         name = data.name or "Unknown"
     }
 end
+
+Registry.register("components", "stats", Stats)
 
 return Stats

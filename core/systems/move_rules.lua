@@ -1,3 +1,5 @@
+local Registry = require("core.registry")
+
 local MovementRules = {}
 
 function MovementRules.can_move(map, x, y)
@@ -16,5 +18,7 @@ function MovementRules.can_move(map, x, y)
 
     return true
 end
+
+Registry.register("systems", "move_rules", MovementRules)
 
 return MovementRules

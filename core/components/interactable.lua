@@ -1,10 +1,14 @@
+local Registry = require("core.registry")
+
 local Interactable = {} 
 
-function Interactable.new(interact_func)
+function Interactable.new(data)
     return {
         selected = false,
-        interact = interact_func or function(self, e) end
+        interact = data.interact_func or function(self, e) end
     }
 end
+
+Registry.register("components", "interactable", Interactable)
 
 return Interactable

@@ -1,6 +1,8 @@
+local Registry = require("core.registry")
+
 local LevelSystem = {} 
 
-function LevelSystem.init(Events)
+function LevelSystem.init(Events, world, map, logger)
 
     Events.on("level_up", function(e)
 
@@ -14,5 +16,7 @@ function LevelSystem.init(Events)
     end, 100) 
 
 end
+
+Registry.register("systems", "level", LevelSystem)
 
 return LevelSystem 

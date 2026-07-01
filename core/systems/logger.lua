@@ -1,6 +1,8 @@
+local Registry = require("core.registry")
+
 local LoggerSystem = {} 
 
-function LoggerSystem.init(Events, logger)
+function LoggerSystem.init(Events, world, map, logger)
 
     Events.on("move", function(e)
         if e.cancelled then return end
@@ -76,5 +78,7 @@ function LoggerSystem.safe_item(entity, index)
 
     return item.name or "Unknown"
 end
+
+Registry.register("systems", "logger", LoggerSystem)
 
 return LoggerSystem 

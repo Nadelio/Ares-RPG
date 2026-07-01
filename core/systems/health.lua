@@ -1,7 +1,8 @@
+local Registry = require("core.registry")
 local StatSystem = require("core.systems.stats")
 local HealthSystem = {}
 
-function HealthSystem.init(Events)
+function HealthSystem.init(Events, world, map, logger)
     Events.on("attack", function(e)
 
         local entity = e.target
@@ -46,5 +47,7 @@ end
 function HealthSystem.is_alive(entity)
     return entity.stats and entity.stats.current.health > 0
 end
+
+Registry.register("systems", "health", HealthSystem)
 
 return HealthSystem

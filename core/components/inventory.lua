@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local Item = require("core.components.item")
 local RarityColors = require("core.render.raritycolors")
 local Inventory = {}
@@ -16,5 +17,7 @@ function Inventory.new(data)
 
     return backpack
 end
+
+Registry.register("components", "inventory", Inventory)
 
 return Inventory

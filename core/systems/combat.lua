@@ -1,3 +1,5 @@
+local Registry = require("core.registry")
+
 local Combat = {}
 
 
@@ -12,5 +14,7 @@ function Combat.attack(attacker, defender)
 
     return damage
 end
+
+Registry.register("systems", "combat", Combat)
 
 return Combat

@@ -12,4 +12,12 @@ function Registry.register(category, name, value)
     Registry[category][name] = value
 end
 
+function Registry.resolve(category, name)
+    local value = Registry[category][name]
+
+    assert(value, ("Missing registry entry: %s.%s"):format(category, name))
+
+    return value
+end
+
 return Registry
