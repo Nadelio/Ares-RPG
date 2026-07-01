@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local StatSystem = Registry.resolve("systems", "stats")
+local StatSystem = require("core.systems.stats")
 local HealthSystem = {}
 
 function HealthSystem.init(Events, world, map, logger)

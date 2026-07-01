@@ -1,9 +1,9 @@
 local Registry = require("core.registry")
-local StatSystem = Registry.resolve("systems", "stats")
-local Object = Registry.resolve("components", "object")
-local Interactable = Registry.resolve("components", "interactable")
-local Position = Registry.resolve("components", "position")
-local Inventory = Registry.resolve("components", "inventory")
+local StatSystem = require("core.systems.stats")
+local Object = require("core.components.object")
+local Interactable = require("core.components.interactable")
+local Position = require("core.components.position")
+local Inventory = require("core.components.inventory")
 
 local InventorySystem = {}
 
@@ -148,7 +148,7 @@ function InventorySystem.init(Events, world, map, logger)
 
             item_obj.item = item
             item_obj.interactable = Interactable.new({
-                interact_func = function(actor, interact_event)
+                interact_func = function(_, interact_event)
                     Events.emit("inventory_pickup", interact_event)
                 end,
             })

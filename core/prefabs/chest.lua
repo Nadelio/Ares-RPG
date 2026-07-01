@@ -1,10 +1,10 @@
 local Registry = require("core.registry")
 
-local Renderable = Registry.resolve("components", "renderable")
-local Position   = Registry.resolve("components", "position")
-local Interactable = Registry.resolve("components", "interactable")
-local Inventory = Registry.resolve("components", "inventory")
-local Object = Registry.resolve("components", "object")
+local Renderable = require("core.components.renderable")
+local Position   = require("core.components.position")
+local Interactable = require("core.components.interactable")
+local Inventory = require("core.components.inventory")
+local Object = require("core.components.object")
 
 local Chest = {}
 

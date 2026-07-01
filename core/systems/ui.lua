@@ -1,7 +1,7 @@
 local Registry = require("core.registry")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
-local StatSystem = Registry.resolve("systems", "stats")
+local StatSystem = require("core.systems.stats")
 local UI = {} 
 
 function UI.box(title, width, height, content)

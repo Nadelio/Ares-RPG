@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local TurnBuffer = Registry.resolve("systems", "turn_buffer")
+local TurnBuffer = require("core.systems.turn_buffer")
 
 local InputSystem = {}
 
