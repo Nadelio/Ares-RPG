@@ -1,31 +1,57 @@
 local Registry = require("core.registry")
-local StatSystem = require("core.systems.stats")
-local Object = require("core.components.object")
-local Interactable = require("core.components.interactable")
-local Position = require("core.components.position")
-local Inventory = require("core.components.inventory")
+local StatSystem = Registry.resolve("systems", "stats")
+local Object = Registry.resolve("components", "object")
+local Interactable = Registry.resolve("components", "interactable")
+local Position = Registry.resolve("components", "position")
+local Inventory = Registry.resolve("components", "inventory")
 
 local InventorySystem = {}
+
+local function ensure_inventory(entity)
+    entity.inventory = entity.inventory or Inventory.new()
+    entity.inventory.items = entity.inventory.items or {}
+
+    return entity.inventory
+end
+
+local function get_item(entity, index)
+    if not index then
+        return nil
+    end
+
+    local inventory = ensure_inventory(entity)
+
+    return inventory.items[index]
+end
+
+local function clamp_selected_slot(entity)
+    if not entity.ui then
+        return
+    end
+
+    local inventory = ensure_inventory(entity)
+    local max_slot = math.max(1, #inventory.items)
+
+    entity.ui.selected_slot = math.max(1, math.min(entity.ui.selected_slot or 1, max_slot))
+end
 
 function InventorySystem.init(Events, world, map, logger)
 
     Events.on("inventory_add", function(e)
         local entity = e.entity
         local item = e.item
+        local inventory = ensure_inventory(entity)
 
         if entity.stats.current.capacity + item.size > StatSystem.get(entity.stats, "capacity") then
             Events.emit("inventory_remove", {
                 entity = entity,
-                index = #entity.inventory.items
+                index = #inventory.items
             })
         end
-
-        if not entity.inventory then
-            entity.inventory = Inventory.new()
-        end
         
-        table.insert(entity.inventory.items, item)
+        table.insert(inventory.items, item)
         entity.stats.current.capacity = entity.stats.current.capacity + item.size
+        clamp_selected_slot(entity)
 
     end, 100)
 
@@ -33,22 +59,27 @@ function InventorySystem.init(Events, world, map, logger)
         local entity = e.entity
         local index = e.index
         local map = e.map
+        local inventory = ensure_inventory(entity)
+        local item = get_item(entity, index)
 
-        if not entity.inventory or not entity.inventory.items[index] then
-            entity.inventory = Inventory.new()
+        if not item then
+            return
         end
-        
-        local item = table.remove(entity.inventory.items, index)
 
         if item.equipped then
             Events.emit("inventory_unequip", {
                 entity = entity,
                 index = index,
+                item = item,
                 map = map
             })
         end
 
+        table.remove(inventory.items, index)
+
         entity.stats.current.capacity = entity.stats.current.capacity - item.size
+        e.item = item
+        clamp_selected_slot(entity)
 
     end, 100)
 
@@ -57,21 +88,20 @@ function InventorySystem.init(Events, world, map, logger)
         local item_obj = e.target
         local item = item_obj.item
         local map = e.map
+        local inventory = ensure_inventory(entity)
 
         if entity.stats.current.capacity + item.size > StatSystem.get(entity.stats, "capacity") then
             Events.emit("inventory_drop", {
                 entity = entity,
-                index = #entity.inventory.items,
+                index = #inventory.items,
                 map = e.map
             })
         end
-
-        if not entity.inventory then
-            entity.inventory = Inventory.new()
-        end
         
-        table.insert(entity.inventory.items, item)
-        entity.inventory.current.capacity = entity.inventory.current.capacity + item.size
+        item.dropped = false
+        table.insert(inventory.items, item)
+        entity.stats.current.capacity = entity.stats.current.capacity + item.size
+        clamp_selected_slot(entity)
         map:remove_object(item_obj)
     end, 100)
 
@@ -79,25 +109,27 @@ function InventorySystem.init(Events, world, map, logger)
         local entity = e.entity
         local index = e.index
         local map = e.map
+        local inventory = ensure_inventory(entity)
+        local item = get_item(entity, index)
 
-        --! [BUG] Dropping items on top of eachother deletes the first item(s)
-        --! [BUG] Dropping the last item in your inventory makes the cursor disappear 
-        --! [BUG] Dropping the last item in your inventory gives the logger gets a nil target (maybe increase logger event hook priorities?)
-
-        if not entity.inventory or not entity.inventory.items[index] then
-            entity.inventory = Inventory.new()
+        if not item then
+            return
         end
 
-        local item = table.remove(entity.inventory.items, index)
-        entity.stats.current.capacity = entity.stats.current.capacity - item.size
+        e.item = item
 
         if item.equipped then
             Events.emit("inventory_unequip", {
                 entity = entity,
                 index = index,
+                item = item,
                 map = map
             })
         end
+
+        table.remove(inventory.items, index)
+        entity.stats.current.capacity = entity.stats.current.capacity - item.size
+        clamp_selected_slot(entity)
 
         item.dropped = true
         if map then
@@ -115,9 +147,11 @@ function InventorySystem.init(Events, world, map, logger)
             })
 
             item_obj.item = item
-            item_obj.interactable = Interactable.new(function(entity, e)
-                Events.emit("inventory_pickup", e)
-            end)
+            item_obj.interactable = Interactable.new({
+                interact_func = function(actor, interact_event)
+                    Events.emit("inventory_pickup", interact_event)
+                end,
+            })
 
             map:add_object(item_obj)
         end
@@ -143,8 +177,12 @@ function InventorySystem.init(Events, world, map, logger)
     Events.on("inventory_unequip", function(e)
         local entity = e.entity
         local index = e.index
-        local item = entity.inventory.items[index]
+        local item = e.item or get_item(entity, index)
         local map = e.map --? used for if items with carry capacity bonus are unequipped, so entity is forced to drop something (if capacity is overfilled)
+
+        if not item then
+            return
+        end
 
         if not item.equipped then
             return

@@ -10,10 +10,14 @@ function MovementRules.can_move(map, x, y)
         return false
     end
 
-    local object = map:get_object(x, y)
+    local objects = map:get_objects(x, y)
 
-    if object and object.collides then
-        return false
+    if objects then
+        for _, object in ipairs(objects) do
+            if object.collides then
+                return false
+            end
+        end
     end
 
     return true

@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local Renderable = require("core.components.renderable") 
+local Renderable = Registry.resolve("components", "renderable") 
 local Item = {}
 
 function Item.new(data)

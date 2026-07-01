@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local MovementRules = require("core.systems.move_rules") 
+local MovementRules = Registry.resolve("systems", "move_rules") 
 
 local MovementSystem = {} 
 

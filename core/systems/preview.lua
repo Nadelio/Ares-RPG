@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local GhostSim = require("core.systems.ghost_sim") 
+local GhostSim = Registry.resolve("systems", "ghost_sim") 
 
 local PreviewSystem = {} 
 

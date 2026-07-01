@@ -33,8 +33,12 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
         end
     end
     
-    for _, obj in pairs(map.objects) do
-        object_map[obj.position.x .. "," .. obj.position.y] = obj
+    for _, objects in pairs(map.objects) do
+        local obj = objects[#objects]
+
+        if obj then
+            object_map[obj.position.x .. "," .. obj.position.y] = obj
+        end
     end
     
     if preview then

@@ -27,13 +27,13 @@ function LoggerSystem.init(Events, world, map, logger)
     Events.on("inventory_equip", function(e)
         logger:add("inventory_equip", {
             actor = e.entity.name,
-            target = LoggerSystem.safe_item(e.entity, e.index),
+            target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         })
     end, -100)
     Events.on("inventory_unequip", function(e)
         logger:add("inventory_unequip", {
             actor = e.entity.name,
-            target = LoggerSystem.safe_item(e.entity, e.index),
+            target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         }) 
     end, -100)
     Events.on("inventory_pickup", function(e)
@@ -45,7 +45,7 @@ function LoggerSystem.init(Events, world, map, logger)
     Events.on("inventory_drop", function(e)
         logger:add("inventory_drop", {
             actor = e.entity.name,
-            target = LoggerSystem.safe_item(e.entity, e.index),
+            target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         })
     end, -100)
 
@@ -67,7 +67,8 @@ function LoggerSystem.init(Events, world, map, logger)
 end
 
 -- HELPERS
-function LoggerSystem.safe_item(entity, index)
+function LoggerSystem.safe_item(entity, index, item)
+    if item then return item.name or "Unknown" end
     if not entity then return "Unknown" end
     if not entity.inventory then return "Unknown" end
     if not entity.inventory.items then return "Unknown" end

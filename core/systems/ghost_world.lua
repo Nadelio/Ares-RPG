@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local GhostWorld = {}
 GhostWorld.__index = GhostWorld
 
@@ -26,5 +27,7 @@ function GhostWorld:set_pos(entity_id, x, y)
         self.entities[entity_id].y = y 
     end
 end
+
+Registry.register("systems", "ghost_world", GhostWorld)
 
 return GhostWorld 

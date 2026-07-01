@@ -1,3 +1,4 @@
+local Registry = require("core.registry")
 local TurnBuffer = {} 
 TurnBuffer.__index = TurnBuffer 
 
@@ -29,5 +30,7 @@ function TurnBuffer:all()
 
     return copy
 end
+
+Registry.register("systems", "turn_buffer", TurnBuffer)
 
 return TurnBuffer 

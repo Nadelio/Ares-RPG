@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local TurnBuffer = require("core.turn_buffer")
+local TurnBuffer = Registry.resolve("systems", "turn_buffer")
 
 local InputSystem = {}
 
@@ -42,23 +42,33 @@ function InputSystem.init(Events, world, map, logger)
             player.ui.selected_tile.x = math.max(1, player.ui.selected_tile.x - 1)
         elseif key == "down" then
             if player.ui.inventory_open then
-                player.ui.selected_slot = math.min(#player.inventory.items, player.ui.selected_slot + 1)
+                local item_count = player.inventory and #player.inventory.items or 0
+                local max_slot = math.max(1, item_count)
+
+                player.ui.selected_slot = math.min(max_slot, player.ui.selected_slot + 1)
             else
                 player.ui.selected_tile.y = math.min(3, player.ui.selected_tile.y + 1)
             end
         elseif key == "e" then
             if player.ui.inventory_open then
-                player.inventory.items[player.ui.selected_slot].equipped = not player.inventory.items[player.ui.selected_slot].equipped
-                if player.inventory.items[player.ui.selected_slot].equipped then
-                    Events.emit("inventory_equip", {
-                        entity = player,
-                        index = player.ui.selected_slot,
-                        map = map
-                    })
-                else
+                local item = player.inventory.items[player.ui.selected_slot]
+
+                if not item then
+                    return
+                end
+
+                if item.equipped then
                     Events.emit("inventory_unequip", {
                         entity = player,
                         index = player.ui.selected_slot,
+                        item = item,
+                        map = map
+                    })
+                else
+                    Events.emit("inventory_equip", {
+                        entity = player,
+                        index = player.ui.selected_slot,
+                        item = item,
                         map = map
                     })
                 end
@@ -77,13 +87,13 @@ function InputSystem.init(Events, world, map, logger)
 
         elseif key == "q" then
             if player.ui.inventory_open then
-                if player.inventory.items[player.ui.selected_slot] then
-                    if player.inventory.items[player.ui.selected_slot].equipped then
-                        player.inventory.items[player.ui.selected_slot].equipped = false
-                    end
+                local item = player.inventory.items[player.ui.selected_slot]
+
+                if item then
                     Events.emit("inventory_drop", {
                         entity = player,
                         index = player.ui.selected_slot,
+                        item = item,
                         map = map
                     })
                 end

@@ -1,5 +1,5 @@
 local Registry = require("core.registry")
-local Item = require("core.components.item")
+local Item = Registry.resolve("components", "item")
 local RarityColors = require("core.render.raritycolors")
 local Inventory = {}
 
