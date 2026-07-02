@@ -46,9 +46,9 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
---! [BUG] Fix the issue where mod names are longer than mod list box and don't have auto-wrap (add auto-wrap to title text for mods in mod list)
-
 -- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
+
+-- TODO: [README] Write the README.md
 
 -- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
 -- TODO: [DOCS] Getting Started section (setup modding environment, downloading Love2D, etc)

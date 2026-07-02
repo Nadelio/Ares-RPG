@@ -8,6 +8,12 @@ local UI = {}
 UI.widgets = {}
 UI.widget_order = {}
 UI._next_widget_order = 0
+UI.layout = {
+    margin = 5,
+    gutter = 5,
+    row_gap = 5,
+    right_column_width = 32,
+}
 
 local function normalize_context(context)
     if context and context.player then
@@ -128,6 +134,146 @@ local function wrap_text(text, width)
     end
 
     return lines
+end
+
+local function get_font()
+    if love and love.graphics and love.graphics.getFont then
+        return love.graphics.getFont()
+    end
+
+    return nil
+end
+
+local function get_screen_size()
+    if love and love.graphics and love.graphics.getDimensions then
+        return love.graphics.getDimensions()
+    end
+
+    return 800, 600
+end
+
+local function get_line_height()
+    local font = get_font()
+
+    if font then
+        return font:getHeight() + 3
+    end
+
+    return 19
+end
+
+local function measure_text_width(text)
+    local normalized = tostring(text or "")
+    local font = get_font()
+
+    if font then
+        return font:getWidth(normalized)
+    end
+
+    return #normalized * 8
+end
+
+local function measure_widget(widget)
+    local width = 0
+    local line_count = widget.lines and #widget.lines or 0
+
+    for _, row in ipairs(widget.lines or {}) do
+        local row_width = 0
+
+        for _, segment in ipairs(row) do
+            row_width = row_width + measure_text_width(segment.text)
+        end
+
+        width = math.max(width, row_width)
+    end
+
+    return {
+        width = width,
+        height = line_count * get_line_height(),
+    }
+end
+
+local function find_widget(widgets, id)
+    for _, widget in ipairs(widgets or {}) do
+        if widget.id == id then
+            return widget
+        end
+    end
+
+    return nil
+end
+
+local function measure_box_width(width)
+    return measure_text_width(string.rep(" ", math.max(0, width or 0)))
+end
+
+local function measure_row_text_width(row)
+    local width = 0
+
+    for _, segment in ipairs(row or {}) do
+        width = width + #tostring(segment.text or "")
+    end
+
+    return width
+end
+
+local function measure_content_text_width(content)
+    local width = 0
+
+    for _, row in ipairs(content or {}) do
+        width = math.max(width, measure_row_text_width(row))
+    end
+
+    return width
+end
+
+function UI.top_y(offset)
+    return UI.layout.margin + (offset or 0)
+end
+
+function UI.left_column_x(widget)
+    local screen_width = get_screen_size()
+    local widget_width = measure_widget(widget).width
+    local reserved_width = measure_box_width(UI.layout.right_column_width)
+
+    return math.max(
+        UI.layout.margin,
+        screen_width - UI.layout.margin - reserved_width - UI.layout.gutter - widget_width
+    )
+end
+
+function UI.right_column_x(widget)
+    local screen_width = get_screen_size()
+    local widget_width = measure_widget(widget).width
+
+    return math.max(UI.layout.margin, screen_width - UI.layout.margin - widget_width)
+end
+
+function UI.right_column_start_x()
+    local screen_width = get_screen_size()
+    local reserved_width = measure_box_width(UI.layout.right_column_width)
+
+    return math.max(UI.layout.margin, screen_width - UI.layout.margin - reserved_width)
+end
+
+function UI.align_with(widgets, id, fallback)
+    local target = find_widget(widgets, id)
+
+    if target and target.y then
+        return target.y
+    end
+
+    return fallback or UI.top_y()
+end
+
+function UI.below(widgets, id, spacing)
+    local target = find_widget(widgets, id)
+
+    if not target then
+        return UI.top_y()
+    end
+
+    return (target.y or UI.top_y()) + measure_widget(target).height + (spacing or UI.layout.row_gap)
 end
 
 local function get_ordered_bonus_keys(bonuses)
@@ -299,6 +445,7 @@ end
 
 local function build_mod_rows(mods)
     local content = {}
+    local title_width = 30
 
     if not mods or #mods == 0 then
         table.insert(content, {
@@ -309,10 +456,20 @@ local function build_mod_rows(mods)
     end
 
     for _, manifest in ipairs(mods) do
+        local version_text = " v" .. (manifest.version or "0.0.0")
+        local name = manifest.name or manifest.id or "Unknown Mod"
+        local wrapped_name = wrap_text(name, math.max(1, title_width - #version_text))
+
         table.insert(content, {
-            { text = manifest.name or manifest.id, color = Colors.blue },
-            { text = " v" .. (manifest.version or "0.0.0"), color = Colors.gray }
+            { text = wrapped_name[1], color = Colors.blue },
+            { text = version_text, color = Colors.gray }
         })
+
+        for i = 2, #wrapped_name do
+            table.insert(content, {
+                { text = wrapped_name[i], color = Colors.blue }
+            })
+        end
 
         for _, line in ipairs(wrap_text(manifest.description or "No description", 28)) do
             table.insert(content, {
@@ -435,9 +592,22 @@ function UI.build(context)
     end)
 
     for _, id in ipairs(ids) do
+        local definition = UI.widgets[id]
         local widget = UI.build_widget(id, context)
 
         if widget and widget.lines then
+            if definition.position then
+                local x, y = definition.position(context, widget, built_widgets)
+
+                if x ~= nil then
+                    widget.x = x
+                end
+
+                if y ~= nil then
+                    widget.y = y
+                end
+            end
+
             table.insert(built_widgets, widget)
         end
     end
@@ -446,9 +616,24 @@ function UI.build(context)
 end
 
 function UI.box(title, width, height, content)
-    width = math.max(1, width or 1)
-    height = math.max(1, height or 1)
     content = content or {}
+
+    local min_width = math.max(1, width or 1)
+    local min_height = math.max(1, height or 1)
+    local title_width = 0
+
+    if title then
+        title_width = #(" " .. title .. " ") + 3
+    end
+
+    width = math.max(min_width, measure_content_text_width(content) + 2, title_width)
+
+    if min_height == 1 then
+        height = 1
+        width = math.max(width, title and (#(" " .. title .. " ") + 4) or 4)
+    else
+        height = math.max(min_height, #content + 2)
+    end
 
     if height == 1 then
         local titleText = title and (" " .. title .. " ") or ""
@@ -605,7 +790,7 @@ end
 function UI.status(player)
     local rows = build_status_rows(player)
 
-    return UI.box("Status", 23, #rows + 2, rows)
+    return UI.box("Status", 24, #rows + 2, rows)
 end
 
 function UI.inventory(player) -- easy wrapper for inventory_panel
@@ -618,8 +803,9 @@ end
 
 UI.register("status", {
     order = 10,
-    x = 250,
-    y = 10,
+    position = function(_, widget)
+        return UI.left_column_x(widget), UI.top_y()
+    end,
     visible = function(context)
         return context.player and context.player.stats
     end,
@@ -630,8 +816,9 @@ UI.register("status", {
 
 UI.register("inventory", {
     order = 20,
-    x = 250,
-    y = 130,
+    position = function(_, widget, widgets)
+        return UI.left_column_x(widget), UI.below(widgets, "status")
+    end,
     visible = function(context)
         return context.player and context.player.ui
     end,
@@ -647,16 +834,15 @@ UI.register("inventory", {
 })
 
 UI.register("item_details", {
-    order = 22,
-    x = 450,
-    y = function(context)
+    order = 26,
+    position = function(context, widget, widgets)
         local player = context.player
 
         if player and player.ui and player.ui.chest_open then
-            return 250
+            return UI.right_column_x(widget), UI.below(widgets, "chest_inventory")
         end
 
-        return 130
+        return UI.right_column_x(widget), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
     end,
     visible = function(context)
         local player = context.player
@@ -676,8 +862,9 @@ UI.register("item_details", {
 
 UI.register("mods", {
     order = 23,
-    x = 450,
-    y = 130,
+    position = function(_, widget, widgets)
+        return UI.right_column_x(widget), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
+    end,
     visible = function(context)
         local player = context.player
 
@@ -697,15 +884,8 @@ UI.register("mods", {
 
 UI.register("demo_box", {
     order = 30,
-    x = 250,
-    y = function(context)
-        local player = context.player
-
-        if player and player.ui and player.ui.inventory_open then
-            return 250
-        end
-
-        return 150
+    position = function(_, widget, widgets)
+        return UI.left_column_x(widget), UI.below(widgets, "inventory")
     end,
     visible = function(context)
         return context.player ~= nil

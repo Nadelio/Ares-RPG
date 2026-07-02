@@ -62,8 +62,9 @@ end
 -- create UI element
 UI.register("chest_inventory", {
     order = 25,
-    x = 450,
-    y = 130,
+    position = function(_, _, widgets)
+        return UI.right_column_start_x(), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
+    end,
     visible = function(context)
         local player = context.player
 
