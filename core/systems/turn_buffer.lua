@@ -1,3 +1,8 @@
+--? [NOTE]
+--? This system was built before I had finished the ECS framework completely,
+--?   so it technically breaks the rules of separation,
+--?   since it combines both data and code/functions.
+
 local Registry = require("core.registry")
 local TurnBuffer = {} 
 TurnBuffer.__index = TurnBuffer 

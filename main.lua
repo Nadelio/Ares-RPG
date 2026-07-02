@@ -33,6 +33,15 @@ local UIState = Registry.resolve("components", "ui_state")
 
 local Chest = Registry.resolve("prefabs", "chest")
 
+
+-- TODO: implement all base stats (also show them in status UI)
+-- TODO: combat system and enemies
+-- TODO: level system
+
+--TODO: procedural map generation system
+
+-- TODO: a way to inspect the stats and description of an item in an inventory 
+
 -- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
 
 local logger = Logger.new()
@@ -53,9 +62,7 @@ local map = Map.new({
         { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }
     }
 })
-
 local world = World.new()
-
 local player = world:add({
     name = "Player",
     position = Position.new({ x = 2, y = 2 }),
@@ -158,6 +165,16 @@ end
 local screen = {} 
 local ui = {} 
 
+local function build_ui_context()
+    return {
+        player = player,
+        world = world,
+        map = map,
+        logger = logger,
+        events = Events,
+    }
+end
+
 function love.draw()
     Renderer.draw(screen) 
     UIRenderer.draw(ui) 
@@ -177,7 +194,7 @@ function love.update(dt)
     Events.emit("tick", { entity = player }) 
     
     screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile) 
-    ui = UIRenderer.build(player) 
+    ui = UIRenderer.build(build_ui_context()) 
 end
 
 function love.quit()
