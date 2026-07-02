@@ -35,14 +35,32 @@ local Chest = Registry.resolve("prefabs", "chest")
 
 
 -- TODO: implement all base stats (also show them in status UI)
--- TODO: combat system and enemies
+-- TODO: a way to inspect the stats and description of an item in an inventory
+-- TODO: Add mod description field
+
 -- TODO: level system
+-- TODO: save system (serialize game state)
+-- TODO: procedural map generation system
+-- TODO: combat system and enemies
 
---TODO: procedural map generation system
-
--- TODO: a way to inspect the stats and description of an item in an inventory 
+-- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
+-- TODO: Pause/Exit menu (for when in a game)
+--? Probably should also refactor input system to more cleanly work with certain game states
 
 -- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
+
+-- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
+-- TODO: [DOCS] Getting Started section (setup modding environment, downloading Love2D, etc)
+-- TODO: [DOCS] how to build a minimal mod example
+-- TODO: [DOCS] How to extend existing content within the Ares ECS framework
+-- TODO: [DOCS] How to register new systems, components, and prefabs
+-- TODO: [DOCS] how to integrate new UI elements, components, events, systems, and prefabs with existing content
+-- TODO: [DOCS] How to subscribe the global logger to custom events
+-- TODO: [DOCS] How to render entities/objects/etc. with custom styles and colors
+-- TODO: [DOCS] How to add new stats to `core.components.stats`
+-- TODO: [DOCS] How to add new rooms to procedural map generation
+-- TODO: [DOCS] How to add new TileStyles
+-- TODO: [DOCS] How to add new rarities
 
 local logger = Logger.new()
 local map = Map.new({

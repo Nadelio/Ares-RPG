@@ -100,7 +100,7 @@ Parameters:
 
 ## InteractionSystem
 > [!NOTE]
-> This is currently not an system separate from anything, it lives purely in [main.lua] and as Events
+> This is currently not an system separate from anything, it lives purely in [main.lua](main.lua) and as Events
 ### `interact`
 This event is emitted whenever an entity interacts with an interactable in the world\
 Parameters:
