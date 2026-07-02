@@ -33,28 +33,29 @@ local UIState = Registry.resolve("components", "ui_state")
 
 local Chest = Registry.resolve("prefabs", "chest")
 
-
--- TODO: implement all base stats (also show them in status UI)
--- TODO: a way to inspect the stats and description of an item in an inventory
--- TODO: Add mod description field
+local loaded_mods = {}
 
 -- TODO: level system
 -- TODO: save system (serialize game state)
 -- TODO: procedural map generation system
 -- TODO: combat system and enemies
+-- TODO: implement all base stats (for combat and looting)
+-- TODO: loot tables in container objects (like chests)
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
+--! [BUG] Fix the issue where mod names are longer than mod list box and don't have auto-wrap (add auto-wrap to title text for mods in mod list)
+
 -- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
 
 -- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
 -- TODO: [DOCS] Getting Started section (setup modding environment, downloading Love2D, etc)
--- TODO: [DOCS] how to build a minimal mod example
+-- TODO: [DOCS] How to build a minimal mod example
 -- TODO: [DOCS] How to extend existing content within the Ares ECS framework
 -- TODO: [DOCS] How to register new systems, components, and prefabs
--- TODO: [DOCS] how to integrate new UI elements, components, events, systems, and prefabs with existing content
+-- TODO: [DOCS] How to integrate new UI elements, components, events, systems, and prefabs with existing content
 -- TODO: [DOCS] How to subscribe the global logger to custom events
 -- TODO: [DOCS] How to render entities/objects/etc. with custom styles and colors
 -- TODO: [DOCS] How to add new stats to `core.components.stats`
@@ -137,7 +138,7 @@ function love.load()
     LevelSystem.init(Events, world, map, logger)
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
-    Loader.load_mod_content(Events, world, map, logger)
+    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
     
     -- manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
@@ -170,6 +171,7 @@ function love.load()
         entity = player,
         item = Item.new({
             name = "Fancy Hat",
+            description = "You stole some guy's fancy hat.",
             rarity = "epic",
             bonuses = {
                 luck = 5,
@@ -190,6 +192,7 @@ local function build_ui_context()
         map = map,
         logger = logger,
         events = Events,
+        mods = loaded_mods,
     }
 end
 

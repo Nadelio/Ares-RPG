@@ -51,9 +51,11 @@ local function load_manifest(mod_name, mod_root)
 
     manifest.id = manifest.id or mod_name
     manifest.name = manifest.name or manifest.id
+    manifest.description = manifest.description or ""
     manifest.dependencies = manifest.dependencies or {}
     manifest.root = mod_root
 
+    assert(type(manifest.description) == "string", ("Mod '%s' description must be a string"):format(manifest.id))
     assert(type(manifest.dependencies) == "table", ("Mod '%s' dependencies must be a table"):format(manifest.id))
 
     for _, dependency in ipairs(manifest.dependencies) do

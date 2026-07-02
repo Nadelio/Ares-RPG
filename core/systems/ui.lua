@@ -1,8 +1,9 @@
 local Registry = require("core.registry")
+local Stats = require("core.components.stats")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
 local StatSystem = require("core.systems.stats")
-local UI = {} 
+local UI = {}
 
 UI.widgets = {}
 UI.widget_order = {}
@@ -28,6 +29,299 @@ end
 
 local function is_list(value)
     return type(value) == "table" and value[1] ~= nil
+end
+
+local function title_case(text)
+    local words = {}
+
+    for part in tostring(text):gmatch("[^_]+") do
+        table.insert(words, part:sub(1, 1):upper() .. part:sub(2):lower())
+    end
+
+    return table.concat(words, " ")
+end
+
+local function get_stat_definition(stat)
+    return Stats.get_definition(stat) or {
+        key = stat,
+        label = title_case(stat)
+    }
+end
+
+local function format_bonus(amount)
+    if amount >= 0 then
+        return "+" .. tostring(amount)
+    end
+
+    return tostring(amount)
+end
+
+local function get_ratio_color(current, maximum, mode)
+    if maximum <= 0 then
+        return Colors.reset
+    end
+
+    local ratio = current / maximum
+
+    if mode == "usage" then
+        if ratio >= 0.85 then
+            return Colors.red
+        elseif ratio >= 0.6 then
+            return Colors.yellow
+        end
+
+        return Colors.green
+    end
+
+    if ratio < 0.3 then
+        return Colors.red
+    elseif ratio < 0.6 then
+        return Colors.yellow
+    end
+
+    return Colors.green
+end
+
+local function wrap_text(text, width)
+    local lines = {}
+    local normalized = tostring(text or "")
+
+    if normalized == "" then
+        return { "" }
+    end
+
+    for paragraph in normalized:gmatch("[^\n]+") do
+        local current = ""
+
+        for word in paragraph:gmatch("%S+") do
+            local candidate = current == "" and word or (current .. " " .. word)
+
+            if #candidate <= width then
+                current = candidate
+            else
+                if current ~= "" then
+                    table.insert(lines, current)
+                end
+
+                if #word <= width then
+                    current = word
+                else
+                    local start_index = 1
+
+                    while start_index <= #word do
+                        table.insert(lines, word:sub(start_index, start_index + width - 1))
+                        start_index = start_index + width
+                    end
+
+                    current = ""
+                end
+            end
+        end
+
+        if current ~= "" then
+            table.insert(lines, current)
+        end
+    end
+
+    if #lines == 0 then
+        table.insert(lines, "")
+    end
+
+    return lines
+end
+
+local function get_ordered_bonus_keys(bonuses)
+    local ordered = {}
+    local seen = {}
+
+    for _, definition in ipairs(Stats.definitions) do
+        if bonuses[definition.key] ~= nil then
+            table.insert(ordered, definition.key)
+            seen[definition.key] = true
+        end
+    end
+
+    local extras = {}
+
+    for stat in pairs(bonuses) do
+        if not seen[stat] then
+            table.insert(extras, stat)
+        end
+    end
+
+    table.sort(extras)
+
+    for _, stat in ipairs(extras) do
+        table.insert(ordered, stat)
+    end
+
+    return ordered
+end
+
+local function selected_inventory_item(player)
+    if not player or not player.ui then
+        return nil, nil
+    end
+
+    if player.ui.chest_open and player.ui.chest_target and player.ui.inventory_focus == "chest" then
+        local chest = player.ui.chest_target
+        local chest_items = chest.inventory and chest.inventory.items or {}
+
+        return chest_items[player.ui.chest_selected_slot], chest.name or "Chest Item"
+    end
+
+    if player.ui.inventory_open and player.inventory and player.inventory.items then
+        return player.inventory.items[player.ui.selected_slot], "Item Details"
+    end
+
+    return nil, nil
+end
+
+local function build_status_rows(player)
+    local rows = {}
+    local compact_entries = {}
+
+    for _, definition in ipairs(Stats.definitions) do
+        local total = StatSystem.get(player.stats, definition.key)
+
+        if definition.current then
+            local current = player.stats.current[definition.key] or 0
+            local color = get_ratio_color(current, total, definition.current_mode)
+
+            table.insert(rows, {
+                { text = string.format(" %-8s", definition.label), color = Colors.reset },
+                { text = string.format("%2d/%2d", current, total), color = color }
+            })
+        else
+            table.insert(compact_entries, {
+                label = definition.label,
+                value = tostring(total),
+                color = total > 0 and Colors.blue or Colors.reset
+            })
+        end
+    end
+
+    table.insert(compact_entries, {
+        label = "LV",
+        value = tostring(player.level or 1),
+        color = Colors.blue
+    })
+
+    for i = 1, #compact_entries, 2 do
+        local left = compact_entries[i]
+        local right = compact_entries[i + 1]
+        local row = {
+            { text = string.format(" %-4s", left.label), color = Colors.reset },
+            { text = string.format("%3s", left.value), color = left.color }
+        }
+
+        if right then
+            table.insert(row, { text = "  ", color = Colors.reset })
+            table.insert(row, { text = string.format("%-4s", right.label), color = Colors.reset })
+            table.insert(row, { text = string.format("%3s", right.value), color = right.color })
+        end
+
+        table.insert(rows, row)
+    end
+
+    return rows
+end
+
+local function build_item_detail_rows(item)
+    if not item then
+        return {
+            {
+                { text = " Select an item to inspect", color = Colors.gray }
+            }
+        }
+    end
+
+    local content = {}
+    local rarity_color = RarityColors[item.rarity] or Colors.reset
+    local rarity = title_case(item.rarity or "unknown")
+    local description = item.description
+
+    if description == "" then
+        description = "No description"
+    end
+
+    table.insert(content, {
+        { text = item.name or "Unknown Item", color = rarity_color }
+    })
+    table.insert(content, {
+        { text = " RARITY ", color = Colors.reset },
+        { text = rarity, color = rarity_color }
+    })
+    table.insert(content, {
+        { text = " SIZE    ", color = Colors.reset },
+        { text = tostring(item.size or 0), color = Colors.blue }
+    })
+
+    if item.equipped then
+        table.insert(content, {
+            { text = " Equipped", color = Colors.green }
+        })
+    end
+
+    table.insert(content, {
+        { text = " DESC", color = Colors.reset }
+    })
+
+    for _, line in ipairs(wrap_text(description, 30)) do
+        table.insert(content, {
+            { text = " " .. line, color = Colors.gray }
+        })
+    end
+
+    table.insert(content, {
+        { text = " BONUSES", color = Colors.reset }
+    })
+
+    local bonus_keys = get_ordered_bonus_keys(item.bonuses or {})
+
+    if #bonus_keys == 0 then
+        table.insert(content, {
+            { text = " none", color = Colors.gray }
+        })
+    else
+        for _, stat in ipairs(bonus_keys) do
+            local definition = get_stat_definition(stat)
+
+            table.insert(content, {
+                { text = string.format(" %-8s", definition.label), color = Colors.reset },
+                { text = format_bonus(item.bonuses[stat]), color = Colors.blue }
+            })
+        end
+    end
+
+    return content
+end
+
+local function build_mod_rows(mods)
+    local content = {}
+
+    if not mods or #mods == 0 then
+        table.insert(content, {
+            { text = " No mods loaded", color = Colors.gray }
+        })
+
+        return content
+    end
+
+    for _, manifest in ipairs(mods) do
+        table.insert(content, {
+            { text = manifest.name or manifest.id, color = Colors.blue },
+            { text = " v" .. (manifest.version or "0.0.0"), color = Colors.gray }
+        })
+
+        for _, line in ipairs(wrap_text(manifest.description or "No description", 28)) do
+            table.insert(content, {
+                { text = " " .. line, color = Colors.gray }
+            })
+        end
+    end
+
+    return content
 end
 
 function UI.register(id, widget)
@@ -309,55 +603,9 @@ function UI.inventory_panel(title, items, selected_slot, options)
 end
 
 function UI.status(player)
-    local hp = player.stats.current.health
-    local max_hp = StatSystem.get(player.stats, "health")
-    local move = player.stats.current.movement
-    local max_move = StatSystem.get(player.stats, "movement")
-    local capacity = player.stats.current.capacity
-    local max_capacity = StatSystem.get(player.stats, "capacity")
+    local rows = build_status_rows(player)
 
-    local hpColor = Colors.green
-
-    if hp / max_hp < 0.3 then
-        hpColor = Colors.red
-    elseif hp / max_hp < 0.6 then
-        hpColor = Colors.yellow
-    end
-
-    local moveColor = Colors.green
-
-    if move / max_move < 0.3 then
-        moveColor = Colors.red
-    elseif move / max_move < 0.6 then
-        moveColor = Colors.yellow
-    end
-
-    local capacityColor = Colors.green
-
-    if capacity / max_capacity < 0.3 then
-        capacityColor = Colors.red
-    elseif capacity / max_capacity < 0.6 then
-        capacityColor = Colors.yellow
-    end
-
-    return UI.box("Status", 18, 6, {
-        {
-            { text = " HP       ", color = Colors.reset },
-            { text = string.format("%2d/%2d", hp, max_hp), color = hpColor }
-        },
-        {
-            { text = " MOVE     ", color = Colors.reset },
-            { text = string.format("%2d/%2d", move, max_move), color = moveColor }
-        },
-        {
-            { text = " CAPACITY ", color = Colors.reset },
-            { text = string.format("%2d/%2d", capacity, max_capacity), color = capacityColor }
-        },
-        {
-            { text = " LV       ", color = Colors.reset },
-            { text = string.format("%2d", player.level), color = Colors.blue }
-        }
-    })
+    return UI.box("Status", 23, #rows + 2, rows)
 end
 
 function UI.inventory(player) -- easy wrapper for inventory_panel
@@ -383,7 +631,7 @@ UI.register("status", {
 UI.register("inventory", {
     order = 20,
     x = 250,
-    y = 110,
+    y = 130,
     visible = function(context)
         return context.player and context.player.ui
     end,
@@ -398,6 +646,55 @@ UI.register("inventory", {
     end,
 })
 
+UI.register("item_details", {
+    order = 22,
+    x = 450,
+    y = function(context)
+        local player = context.player
+
+        if player and player.ui and player.ui.chest_open then
+            return 250
+        end
+
+        return 130
+    end,
+    visible = function(context)
+        local player = context.player
+
+        return player
+            and player.ui
+            and (player.ui.inventory_open or player.ui.chest_open)
+    end,
+    build = function(context)
+        local player = context.player
+        local item, title = selected_inventory_item(player)
+        local rows = build_item_detail_rows(item)
+
+        return UI.box("Item Details", 32, math.max(#rows + 2, 9), rows)
+    end,
+})
+
+UI.register("mods", {
+    order = 23,
+    x = 450,
+    y = 130,
+    visible = function(context)
+        local player = context.player
+
+        return context.mods
+            and #context.mods > 0
+            and player
+            and player.ui
+            and not player.ui.inventory_open
+            and not player.ui.chest_open
+    end,
+    build = function(context)
+        local rows = build_mod_rows(context.mods)
+
+        return UI.box("Mods", 32, math.max(#rows + 2, 7), rows)
+    end,
+})
+
 UI.register("demo_box", {
     order = 30,
     x = 250,
@@ -405,10 +702,10 @@ UI.register("demo_box", {
         local player = context.player
 
         if player and player.ui and player.ui.inventory_open then
-            return 230
+            return 250
         end
 
-        return 130
+        return 150
     end,
     visible = function(context)
         return context.player ~= nil
@@ -435,7 +732,7 @@ UI.register("demo_box", {
         else
             content = {
                 {
-                    { text = " E inspect/interact", color = Colors.reset }
+                    { text = " E equip/interact", color = Colors.reset }
                 },
                 {
                     { text = " I inventory", color = Colors.reset }
@@ -449,4 +746,4 @@ UI.register("demo_box", {
 
 Registry.register("systems", "ui", UI)
 
-return UI 
+return UI

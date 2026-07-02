@@ -63,7 +63,7 @@ end
 UI.register("chest_inventory", {
     order = 25,
     x = 450,
-    y = 110,
+    y = 130,
     visible = function(context)
         local player = context.player
 

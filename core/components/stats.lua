@@ -6,6 +6,25 @@ local EntityStates = {
     DEAD = 0
 }
 
+Stats.definitions = {
+    { key = "health", label = "HP", current = true, current_mode = "remaining" },
+    { key = "movement", label = "MOVE", current = true, current_mode = "remaining" },
+    { key = "capacity", label = "LOAD", current = true, current_mode = "usage" },
+    { key = "attack", label = "ATK" },
+    { key = "defense", label = "DEF" },
+    { key = "luck", label = "LCK" },
+}
+
+Stats.definition_map = {}
+
+for _, definition in ipairs(Stats.definitions) do
+    Stats.definition_map[definition.key] = definition
+end
+
+function Stats.get_definition(stat)
+    return Stats.definition_map[stat]
+end
+
 function Stats.new(data)
     data = data or {}
 
