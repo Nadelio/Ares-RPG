@@ -1,7 +1,7 @@
 - Intro sequence
     - Random characters that then stabilize into the start menu
 Kinda like these ideas:
-![alt text](image-2.png)
+![alt text](repo_assets/image-2.png)
 ```
 frame 1:
 a$*d#─@!-/[\0
@@ -28,8 +28,8 @@ frame 3:
 
 - Start menu has a scanline bug that uses the `═─▀▁▂▃▄▅▆▇█▉` characters
 Kinda like these ideas:
-![alt text](image.png)
-![alt text](image-1.png)
+![alt text](repo_assets/image.png)
+![alt text](repo_assets/image-1.png)
 ![FNAF 3 - Start Sound](https://i.makeagif.com/media/4-03-2015/hwQxBk.gif)
 ```
 frame 1:
