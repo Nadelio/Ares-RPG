@@ -38,9 +38,7 @@ local loaded_mods = {}
 
 -- TODO: class system
 --? [TEST] what enemies you have advantage/disadvantage against
---? [TEST] what skills and spells you can unlock as you level up
 
--- TODO: level system
 -- TODO: procedural map generation system
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
