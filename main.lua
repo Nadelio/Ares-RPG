@@ -20,6 +20,7 @@ local LevelSystem = Registry.resolve("systems", "level")
 local HealthSystem = Registry.resolve("systems", "health")
 local LoggerSystem = Registry.resolve("systems", "logger")
 local InventorySystem = Registry.resolve("systems", "inventory")
+local ClassSystem = Registry.resolve("systems", "class")
 local TurnSystem = Registry.resolve("systems", "turn")
 local PreviewSystem = Registry.resolve("systems", "preview")
 local StatSystem = Registry.resolve("systems", "stats")
@@ -35,10 +36,14 @@ local Chest = Registry.resolve("prefabs", "chest")
 
 local loaded_mods = {}
 
+-- TODO: class system
+--? [TEST] what enemies you have advantage/disadvantage against
+--? [TEST] what skills and spells you can unlock as you level up
+
 -- TODO: level system
--- TODO: save system (serialize game state)
 -- TODO: procedural map generation system
 -- TODO: combat system and enemies
+-- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
 -- TODO: loot tables in container objects (like chests)
 
@@ -62,6 +67,7 @@ local loaded_mods = {}
 -- TODO: [DOCS] How to add new rooms to procedural map generation
 -- TODO: [DOCS] How to add new TileStyles
 -- TODO: [DOCS] How to add new rarities
+-- TODO: [DOCS] How to add new classes and skill/spell trees
 
 local logger = Logger.new()
 local map = Map.new({
@@ -86,7 +92,7 @@ local player = world:add({
     name = "Player",
     position = Position.new({ x = 2, y = 2 }),
     renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
-    stats = Stats.new({ health = 10, movement = 10 }),
+    stats = Stats.new({ class = "human" }),
     inventory = Inventory.new({}),
     ui = UIState.new({}),
 
@@ -138,48 +144,16 @@ function love.load()
     LevelSystem.init(Events, world, map, logger)
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
-    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
     
-    -- manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
+    --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
     StatSystem.equip(player.stats, player.inventory)
     table.insert(player.stats.equipped_items, player.inventory)
+    
+    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a since item
+    ClassSystem.init(Events, world, map, logger)
 
-    Events.emit("inventory_add", {
-        entity = player,
-        item = Item.new({
-            name = "Sword",
-            description = "A simple bladed weapon",
-            rarity = "legendary",
-            bonuses = { attack = 5},
-        }),
-    })
-    Events.emit("inventory_add", {
-        entity = player,
-        item = Item.new({
-            name = "Shield",
-            description = "A simple shield",
-            rarity = "common",
-            bonuses = { defense = 5 }
-        }),
-    })
-    Events.emit("inventory_add", {
-        entity = player,
-        item = Item.new({}), -- add unknown item (is cursed)
-    })
-    Events.emit("inventory_add", {
-        entity = player,
-        item = Item.new({
-            name = "Fancy Hat",
-            description = "You stole some guy's fancy hat.",
-            rarity = "epic",
-            bonuses = {
-                luck = 5,
-                defense = 2,
-            }
-        }),
-    })
-
+    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
 end
 
 local screen = {} 

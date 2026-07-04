@@ -95,11 +95,11 @@ function Logger:format(event)
         )
     elseif event.type == "level_up" then
         return string.format(
-            "[Action %d] LEVEL UP %s (+%s %d)",
+            "[Action %d] LEVEL UP %s (+%d LV -> %d)",
             event.turn,
             event.data.entity,
-            event.data.stat,
-            event.data.amount
+            event.data.levels or 1,
+            event.data.new_level or 1
         ) 
     end
 

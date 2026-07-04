@@ -3,6 +3,7 @@ local Stats = require("core.components.stats")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
 local StatSystem = require("core.systems.stats")
+local ClassSystem = require("core.systems.class")
 local UI = {}
 
 UI.widgets = {}
@@ -326,7 +327,14 @@ end
 local function build_status_rows(player)
     local rows = {}
     local compact_entries = {}
-
+    table.insert(rows, {
+        { text = string.format(" %-8s", "CLASS"), color = Colors.reset },
+        { text = string.format(" %-8s", player.stats.class), color = Colors.blue }
+    })
+    table.insert(rows, {
+        { text = string.format(" %-8s", "XP"), color = Colors.reset },
+        { text = string.format("%4.2f/%4.2f", player.experience or 0, player.experience_to_next_level or (5 + (player.level or 1))), color = Colors.blue }
+    })
     for _, definition in ipairs(Stats.definitions) do
         local total = StatSystem.get(player.stats, definition.key)
 
@@ -441,6 +449,143 @@ local function build_item_detail_rows(item)
     end
 
     return content
+end
+
+local function find_level_up_tab(player, tabs)
+    for _, tab in ipairs(tabs or {}) do
+        if tab.id == player.ui.level_up_tab then
+            return tab
+        end
+    end
+
+    return tabs and tabs[1] or nil
+end
+
+local function append_level_up_detail_rows(rows, entry, player)
+    if not entry then
+        return
+    end
+
+    table.insert(rows, {
+        { text = " DETAILS", color = Colors.reset }
+    })
+
+    if entry.kind == "stat" then
+        local current = StatSystem.get(player.stats, entry.id)
+
+        table.insert(rows, {
+            { text = string.format(" %s %d -> %d", entry.label, current, current + 1), color = Colors.blue }
+        })
+    else
+        table.insert(rows, {
+            { text = string.format(" %s [%s]", entry.label or entry.name or "Unknown", string.upper(entry.kind or "skill")), color = Colors.blue }
+        })
+
+        for _, line in ipairs(wrap_text(entry.description or "No description", 42)) do
+            table.insert(rows, {
+                { text = " " .. line, color = Colors.gray }
+            })
+        end
+
+        if entry.cost and next(entry.cost) ~= nil then
+            table.insert(rows, {
+                { text = " COST", color = Colors.reset }
+            })
+
+            for _, stat in ipairs(get_ordered_bonus_keys(entry.cost)) do
+                local definition = get_stat_definition(stat)
+
+                table.insert(rows, {
+                    { text = string.format(" %-8s", definition.label), color = Colors.reset },
+                    { text = format_bonus(entry.cost[stat]), color = Colors.red }
+                })
+            end
+        end
+
+        if entry.bonuses and next(entry.bonuses) ~= nil then
+            table.insert(rows, {
+                { text = " BONUSES", color = Colors.reset }
+            })
+
+            for _, stat in ipairs(get_ordered_bonus_keys(entry.bonuses)) do
+                local definition = get_stat_definition(stat)
+
+                table.insert(rows, {
+                    { text = string.format(" %-8s", definition.label), color = Colors.reset },
+                    { text = format_bonus(entry.bonuses[stat]), color = Colors.green }
+                })
+            end
+        end
+    end
+
+    table.insert(rows, {
+        { text = " E/ENTER choose  Q close", color = Colors.gray },
+        { text = " LEFT/RIGHT switch tabs", color = Colors.gray }
+    })
+end
+
+local function build_level_up_rows(player)
+    local rows = {}
+    local tabs = ClassSystem.get_level_up_choices(player) or {}
+    local active_tab = find_level_up_tab(player, tabs)
+
+    table.insert(rows, {
+        { text = string.format(" Level %d reached", player.level or 1), color = Colors.green }
+    })
+
+    if #tabs == 0 then
+        table.insert(rows, {
+            { text = " No rewards available right now", color = Colors.gray }
+        })
+        table.insert(rows, {
+            { text = " Q close", color = Colors.gray },
+            { text = " LEFT/RIGHT switch tabs", color = Colors.gray }
+        })
+        return rows
+    end
+
+    for _, tab in ipairs(tabs) do
+        local label = string.format(" %s [%d] ", tab.label, tab.pending)
+        local color = tab.id == player.ui.level_up_tab and Colors.cursor or Colors.reset
+
+        table.insert(rows, {
+            { text = label, color = color }
+        })
+    end
+
+    table.insert(rows, {
+        { text = " OPTIONS", color = Colors.reset }
+    })
+
+    if active_tab and #active_tab.entries > 0 then
+        for index, entry in ipairs(active_tab.entries) do
+            local prefix = index == player.ui.level_up_selected_index and "> " or "  "
+            local label = entry.label or entry.name or entry.id or "Unknown"
+            local suffix = ""
+
+            if entry.kind == "stat" then
+                suffix = " +1"
+            else
+                suffix = " [" .. string.upper(entry.kind or "skill") .. "]"
+            end
+
+            table.insert(rows, {
+                { text = prefix, color = index == player.ui.level_up_selected_index and Colors.cursor or Colors.reset },
+                { text = label, color = index == player.ui.level_up_selected_index and Colors.cursor or Colors.reset },
+                { text = suffix, color = Colors.gray }
+            })
+        end
+    else
+        table.insert(rows, {
+            { text = " No choices in this tab yet", color = Colors.gray }
+        })
+    end
+
+    if active_tab then
+        append_level_up_detail_rows(rows, active_tab.entries[player.ui.level_up_selected_index], player)
+    end
+
+    return rows
 end
 
 local function build_mod_rows(mods)
@@ -615,8 +760,9 @@ function UI.build(context)
     return built_widgets
 end
 
-function UI.box(title, width, height, content)
+function UI.box(title, width, height, content, options)
     content = content or {}
+    options = options or {}
 
     local min_width = math.max(1, width or 1)
     local min_height = math.max(1, height or 1)
@@ -639,7 +785,7 @@ function UI.box(title, width, height, content)
         local titleText = title and (" " .. title .. " ") or ""
         local remaining = math.max(0, width - #titleText - 4)
 
-        return {
+        local lines = {
             {
                 {
                     text = "╶─" ..
@@ -650,6 +796,15 @@ function UI.box(title, width, height, content)
                 }
             }
         }
+
+        if options.background then
+            return {
+                lines = lines,
+                background = options.background,
+            }
+        end
+
+        return lines
     end
 
     local innerWidth = math.max(0, width - 2)
@@ -737,6 +892,13 @@ function UI.box(title, width, height, content)
             color = Colors.reset
         }
     })
+
+    if options.background then
+        return {
+            lines = lines,
+            background = options.background,
+        }
+    end
 
     return lines
 end
@@ -882,7 +1044,32 @@ UI.register("mods", {
     end,
 })
 
-UI.register("demo_box", {
+UI.register("level_up", {
+    order = 100,
+    position = function(_, widget)
+        local screen_width, screen_height = get_screen_size()
+        local size = measure_widget(widget)
+
+        return math.floor((screen_width - size.width) / 2), math.floor((screen_height - size.height) / 2)
+    end,
+    visible = function(context)
+        local player = context.player
+
+        return player
+            and player.ui
+            and player.ui.level_up_open
+    end,
+    build = function(context)
+        local player = context.player
+        local rows = build_level_up_rows(player)
+
+        return UI.box("Level Up", 48, math.max(#rows + 2, 16), rows, {
+            background = { 0, 0, 0, 0.9 }
+        })
+    end,
+})
+
+UI.register("controls", {
     order = 30,
     position = function(_, widget, widgets)
         return UI.left_column_x(widget), UI.below(widgets, "inventory")
@@ -894,7 +1081,22 @@ UI.register("demo_box", {
         local player = context.player
         local content
 
-        if player and player.ui and player.ui.chest_open then
+        if player and player.ui and player.ui.level_up_open then
+            content = {
+                {
+                    { text = " LEFT/RIGHT tab", color = Colors.reset }
+                },
+                {
+                    { text = " UP/DOWN   select", color = Colors.reset }
+                },
+                {
+                    { text = " E/ENTER   choose", color = Colors.reset }
+                },
+                {
+                    { text = " Q         close", color = Colors.reset }
+                },
+            }
+        elseif player and player.ui and player.ui.chest_open then
             content = {
                 {
                     { text = " LEFT/RIGHT focus", color = Colors.reset }
@@ -916,6 +1118,9 @@ UI.register("demo_box", {
                 },
                 {
                     { text = " I inventory", color = Colors.reset }
+                },
+                {
+                    { text = " L level rewards", color = Colors.reset }
                 },
             }
         end

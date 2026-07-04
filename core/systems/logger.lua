@@ -52,7 +52,8 @@ function LoggerSystem.init(Events, world, map, logger)
     Events.on("level_up", function(e)
         logger:add("level_up", {
             entity = e.entity.name,
-            levels = e.amount
+            levels = e.amount,
+            new_level = e.new_level or e.entity.level,
         })
     end, -100) 
 

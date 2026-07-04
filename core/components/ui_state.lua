@@ -12,6 +12,9 @@ function UIState.new(data)
         chest_selected_slot = 1,
         inventory_focus = "player",
         inventory_open_before_chest = false,
+        level_up_open = false,
+        level_up_tab = "stats",
+        level_up_selected_index = 1,
     }
 end
 

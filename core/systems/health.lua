@@ -20,7 +20,11 @@ function HealthSystem.init(Events, world, map, logger)
         if entity.stats.current.health <= 0 then
             entity.dead = true
             Events.emit("death", {
-                entity = entity
+                entity = entity,
+                killer = e.attacker,
+                attacker = e.attacker,
+                damage = amount,
+                cause = "attack",
             })
         end
 
