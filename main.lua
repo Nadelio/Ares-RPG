@@ -37,13 +37,19 @@ local Chest = Registry.resolve("prefabs", "chest")
 local loaded_mods = {}
 
 -- TODO: class system
---? [TEST] what enemies you have advantage/disadvantage against
+-- TODO: Add weapon/armor advantage/disadvantage
+--? [TEST] enemy advantage/disadvantage
+--? [TEST] weapons/armor advantage/disadvantage
+--? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: procedural map generation system
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
 -- TODO: loot tables in container objects (like chests)
+
+-- TODO: interaction menu (only available if >1 interaction)
+-- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
