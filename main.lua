@@ -51,6 +51,8 @@ local loaded_mods = {}
 -- TODO: interaction menu (only available if >1 interaction)
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
+-- TODO: Make player and enemy prefabs
+
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
