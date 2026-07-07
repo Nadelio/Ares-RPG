@@ -191,6 +191,14 @@ end
 function Loader.load_mod_content(events, world, map, logger)
     local mods_root = "mods"
 
+    --? when running as a fused executable, the mods/ folder lives next to
+    --? the .exe rather than inside the archive, so we mount it manually
+    --? while in dev the folder is already in the "virtual filesystem"
+    if love.filesystem.isFused() then
+        local external_mods = love.filesystem.getSourceBaseDirectory() .. "/mods"
+        love.filesystem.mount(external_mods, mods_root)
+    end
+
     if not love.filesystem.getInfo(mods_root, "directory") then
         return {}
     end
