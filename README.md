@@ -1,6 +1,6 @@
 # Ares RPG
 
-A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics.\
+A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics and has heavy modding support.
 
 ---
 
@@ -17,7 +17,7 @@ You want your freedom.\
     <img>
 </p>
 
-## [Download Here!](https://github.com/Nadelio/Ares-RPG/releases)
+### [Download Here!](https://github.com/Nadelio/Ares-RPG/releases)
 
 --- 
 
@@ -32,11 +32,9 @@ bash build.sh
 ## Dependencies
 - Love2D, the library used for multiplatform input and audio (as well as the window and some other minor things)
 - `zip`, used for creating the `.love` archive
-    - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager
+    - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager (if you don't already have it)
 
 ---
 
 [![Getting Started](./repo_assets/getting_started.png)](./docs/README.md)
-## [Modding Documentation](./docs/)
-
----
+### [Modding Documentation](./docs/)
