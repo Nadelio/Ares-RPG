@@ -36,5 +36,5 @@ bash build.sh
 
 ---
 
-[![Getting Started](./repo_assets/getting_started.png)](./docs/README.md)
+[![Getting Started](./repo_assets/GettingStarted.svg)](./docs/README.md)
 ### [Modding Documentation](./docs/)

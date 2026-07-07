@@ -56,10 +56,7 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: [README] Write the README.md
-
 -- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
--- TODO: [DOCS] Getting Started section (setup modding environment, downloading Love2D, etc)
 -- TODO: [DOCS] How to build a minimal mod example
 -- TODO: [DOCS] How to extend existing content within the Ares ECS framework
 -- TODO: [DOCS] How to register new systems, components, and prefabs
