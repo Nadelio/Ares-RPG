@@ -11,16 +11,23 @@ You want your freedom.\
 ---
 
 <!-- preview images here -->
-<!-- download the game -->
+<p float="left">
+    <img>
+    <img>
+    <img>
+</p>
+
+## [Download Here!](https://github.com/Nadelio/Ares-RPG/releases)
 
 --- 
 
-<!-- building the game from scratch -->
-<!-- dependencies -->
+# Building From Scratch
+## Dependencies
+- Love2D
 
 ---
 
-<!-- getting started doc hyperlink -->
-<!-- modding docs hyperlink -->
+[![Getting Started](./repo_assets/getting_started.png)](./docs/README.md)
+## [Modding Documentation](./docs/)
 
 ---
