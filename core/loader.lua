@@ -191,13 +191,12 @@ end
 function Loader.load_mod_content(events, world, map, logger)
     local mods_root = "mods"
 
-    --? when running as a fused executable, the mods/ folder lives next to
-    --? the .exe rather than inside the archive, so we mount it manually
-    --? while in dev the folder is already in the "virtual filesystem"
-    if love.filesystem.isFused() then
-        local external_mods = love.filesystem.getSourceBaseDirectory() .. "/mods"
-        love.filesystem.mount(external_mods, mods_root)
-    end
+    --? In a fused exe, love.filesystem.mount cannot access the mods/ directory
+    --? next to the .exe. Mods must go in the Love2D save directory instead,
+    --? which is always in the search path automatically:
+    --?   Windows: %APPDATA%\Roaming\AresRPG\mods\
+    --?   MacOS:   ~/Library/Application Support/AresRPG/mods/
+    --?   Linux:   ~/.local/share/AresRPG/mods/
 
     if not love.filesystem.getInfo(mods_root, "directory") then
         return {}

@@ -56,8 +56,6 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: Find a way to compile to an executable so that you don't need to call `love .` in terminal (ironic, given the visual style of the game)
-
 -- TODO: [README] Write the README.md
 
 -- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
@@ -141,6 +139,11 @@ function love.load()
 
     love.keyboard.setKeyRepeat(false)
 
+    if not love.filesystem.getInfo("mods", "directory") then
+        love.filesystem.createDirectory("mods")
+        print("Mods folder created at: " .. love.filesystem.getSaveDirectory() .. "\\mods")
+    end
+
     TurnSystem.init(Events, world, map, logger)
     InputSystem.init(Events, world, map, logger)
     PreviewSystem.init(Events, world, map, logger)
@@ -159,6 +162,7 @@ function love.load()
     ClassSystem.init(Events, world, map, logger)
 
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)
+    print("Loaded " .. #loaded_mods .. " mods.")
 end
 
 local screen = {} 

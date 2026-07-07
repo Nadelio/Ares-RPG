@@ -61,7 +61,7 @@ case "$PLATFORM" in
         echo "  $OUTPUT_DIR/$GAME_NAME.exe"
         ;;
     macos)
-        echo "Building macOS app bundle..."
+        echo "Building MacOS app bundle..."
         cp -r "$LOVE_PATH" "$OUTPUT_DIR/$GAME_NAME.app"
         cp "$LOVE_FILE" "$OUTPUT_DIR/$GAME_NAME.app/Contents/Resources/"
         echo "  $OUTPUT_DIR/$GAME_NAME.app"
@@ -76,18 +76,31 @@ esac
 
 rm "$LOVE_FILE"
 
-mkdir -p "$OUTPUT_DIR/mods"
-cat > "$OUTPUT_DIR/mods/README.txt" << 'EOF'
-Drop mod folders here. Each mod is a subfolder with a mod.lua manifest.
-Example layout:
-  mods/
-    my_mod/
-      mod.lua
-      systems/
-      components/
-      prefabs/
+cat > "$OUTPUT_DIR/README.txt" << 'EOF'
+Thank you so much for playing or modding my game! I hope you enjoy it!
+
+If you have an bugs or suggestions, please create an issue on Github: https://github.com/Nadelio/Ares-RPG/issues
+If you want me to list your mod under the Ares Mod Index, please create an issue on Github: https://github.com/Nadelio/Ares-Mod-Index/issues
+
+To install mods, place them in your OS's executable data directory:
+  Windows: %APPDATA%\AresRPG\mods\
+  MacOS:   ~/Library/Application Support/AresRPG/mods/
+  Linux:   ~/.local/share/AresRPG/mods/
+
+Each mod is a subfolder containing a mod.lua manifest:
+mods/
+  my_mod/
+    mod.lua
+    systems/
+    components/
+    prefabs/
+
+If you need help with modding, please read the documentation: https://github.com/Nadelio/Ares-RPG/tree/main/docs
+If you have a question that isn't answered by the docs or by the modding FAQ, please create an issue on Github: https://github.com/Nadelio/Ares-RPG/issues
 EOF
+
+mkdir -p "$OUTPUT_DIR/saves"
+touch "$OUTPUT_DIR/saves/demo.log"
 
 echo ""
 echo "Build complete -> $OUTPUT_DIR/"
-echo "  mods/  <-- modders drop their folders here"

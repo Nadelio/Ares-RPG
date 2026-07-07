@@ -22,8 +22,17 @@ You want your freedom.\
 --- 
 
 # Building From Scratch
+```bash
+# using bash
+LOVE_PATH="custom_love_path" # use this if you have a non-standard Love2D path
+bash build.sh
+# output directory is the first arg, the game name is the second arg
+```
+
 ## Dependencies
-- Love2D
+- Love2D, the library used for multiplatform input and audio (as well as the window and some other minor things)
+- `zip`, used for creating the `.love` archive
+    - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager
 
 ---
 
