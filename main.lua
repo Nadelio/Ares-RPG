@@ -25,7 +25,6 @@ local TurnSystem = Registry.resolve("systems", "turn")
 local PreviewSystem = Registry.resolve("systems", "preview")
 local StatSystem = Registry.resolve("systems", "stats")
 
-local Item = Registry.resolve("components", "item")
 local Position = Registry.resolve("components", "position")
 local Renderable = Registry.resolve("components", "renderable")
 local Stats = Registry.resolve("components", "stats")
@@ -150,13 +149,13 @@ function love.load()
     LevelSystem.init(Events, world, map, logger)
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
-    
+
     --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
     StatSystem.equip(player.stats, player.inventory)
     table.insert(player.stats.equipped_items, player.inventory)
-    
-    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a since item
+
+    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single item
     ClassSystem.init(Events, world, map, logger)
 
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)
@@ -177,30 +176,29 @@ local function build_ui_context()
 end
 
 function love.draw()
-    Renderer.draw(screen) 
-    UIRenderer.draw(ui) 
+    Renderer.draw(screen)
+    UIRenderer.draw(ui)
 end
 
 function love.update(dt)
-    local key = Input.poll() 
+    local key = Input.poll()
 
     if key then
         Events.emit("input", {
             key = key,
             entity = player
-        }) 
-
+        })
     end
-    
-    Events.emit("tick", { entity = player }) 
-    
-    screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile) 
-    ui = UIRenderer.build(build_ui_context()) 
+
+    Events.emit("tick", { entity = player })
+
+    screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile)
+    ui = UIRenderer.build(build_ui_context())
 end
 
 function love.quit()
     print("Game Over!") 
-    logger:save("saves/demo.log") 
+    logger:save("saves/demo.log")
 
-    Events.emit("shutdown", {}) 
+    Events.emit("shutdown", {})
 end
