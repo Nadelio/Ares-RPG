@@ -54,3 +54,8 @@ After you have created your mods manifest, you need to 3 folders, `components/`,
 Now your modding environment should be completely setup, so you are good to get to modding!
 
 For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md) or [Your First Mod](./first_mod.md)
+
+# Table of Contents
+[Ares ECS Framework](./ecs_framework.md)\
+[Your First Mod](./first_mod.md)\
+[Core Events List](./events.md)
