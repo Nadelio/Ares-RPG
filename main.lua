@@ -56,13 +56,12 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: [DOCS] Ares ECS framework philosophy (Components = Data, Systems = Code, Prefabs = Instances of Components + Systems, Events = activators for Systems)
--- TODO: [DOCS] How to build a minimal mod example
--- TODO: [DOCS] How to extend existing content within the Ares ECS framework
 -- TODO: [DOCS] How to register new systems, components, and prefabs
+-- TODO: [DOCS] How to extend or overwrite existing content within the Ares ECS framework
 -- TODO: [DOCS] How to integrate new UI elements, components, events, systems, and prefabs with existing content
 -- TODO: [DOCS] How to subscribe the global logger to custom events
 -- TODO: [DOCS] How to render entities/objects/etc. with custom styles and colors
+-- TODO: [DOCS] How to add new UI elements
 -- TODO: [DOCS] How to add new stats to `core.components.stats`
 -- TODO: [DOCS] How to add new rooms to procedural map generation
 -- TODO: [DOCS] How to add new TileStyles

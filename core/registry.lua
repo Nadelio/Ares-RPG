@@ -12,6 +12,11 @@ function Registry.register(category, name, value)
     Registry[category][name] = value
 end
 
+function Registry.overwrite(category, name, value)
+    warn(category .. "." .. name .. " is being overwritten.")
+    Registry[category][name] = value
+end
+
 function Registry.resolve(category, name)
     local value = Registry[category][name]
 

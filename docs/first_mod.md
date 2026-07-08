@@ -80,4 +80,4 @@ If you don't see anything, double-check that:
 
 ---
 
-For further reading, navigate to **[Ares ECS Framework](./ecs_framework.md)** or **[Events Reference](./events.md)**
+For further reading, navigate to [Your First Prefab](./first_prefab.md)

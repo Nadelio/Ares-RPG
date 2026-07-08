@@ -53,9 +53,38 @@ After you have created your mods manifest, you need to 3 folders, `components/`,
 
 Now your modding environment should be completely setup, so you are good to get to modding!
 
-For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md) or [Your First Mod](./first_mod.md)
+For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md), [Your First Mod](./first_mod.md), or [Your First Prefab](./first_prefab.md)
 
 # Table of Contents
-[Ares ECS Framework](./ecs_framework.md)\
-[Your First Mod](./first_mod.md)\
-[Core Events List](./events.md)
+- [Getting Started](./README.md)
+- [Ares ECS Framework](./ecs_framework.md)
+- [Your First Mod](./first_mod.md)
+- [Your First Prefab](./first_prefab.md)
+- [Adding Custom Logs](./logging.md)
+- [Rendering Entities](./rendering_entities.md)
+- [Registering New Content](./registering_content.md)
+- [Extending Existing Content](./extending_content.md)
+- [Working With `core` Content](./integrating_with_core.md)
+    - [Custom Items](./custom_items.md)
+    - [Custom Stats](./custom_stats.md)
+    - [Custom Rarities](./custom_rarities.md)
+    - [Custom Classes](./custom_classes.md)
+    - [Custom Spells](./custom_spells.md)
+    - [Custom Skills](./custom_skills.md)
+    - [Custom Inputs/Keybinds](./custom_inputs.md)
+    - [Custom UI Elements](./custom_ui.md)
+    - [Custom Entities](./custom_entities.md)
+    - [Procedural Map Generation](./procedural_map_gen.md)
+    - [Custom Objects](./custom_objects.md)
+    - [Custom Tile Styles](./custom_tile_styles.md)
+    - [Custom Loot Tables](./custom_loot_tables.md)
+    - [Custom Floors](./custom_floors.md)
+    - [New Movement Rules](./extending_move_rules.md)
+    - [Adding New Actions](./extending_turn_buffer.md)
+    - [Custom Notifications](./custom_notifications.md)
+    - [Custom Achievements](./custom_achievments.md)
+- [Events Reference](./events.md)
+- [Components Reference](./components.md)
+- [Systems Reference](./systems.md)
+- [Prefabs Reference](./prefabs.md)
+
