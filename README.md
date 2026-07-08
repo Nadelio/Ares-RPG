@@ -10,14 +10,20 @@ You want your freedom.\
 
 ---
 
-<!-- preview images here -->
-<p float="left">
-    <img>
-    <img>
-    <img>
+<p float="left" align="center">
+    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
+    <img src="./repo_assets/beta_screenshot.png" width="300">
+    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
 </p>
 
-### [Download Here!](https://github.com/Nadelio/Ares-RPG/releases)
+<p align="center">
+    Go to Downloads
+</p>
+<p align="center">
+    <a href="https://github.com/Nadelio/Ares-RPG/releases">
+        <img src="./repo_assets/download_icon.png" alt="Download Here!" width="100">
+    </a>
+</p>
 
 --- 
 
@@ -36,5 +42,13 @@ bash build.sh
 
 ---
 
-[![Getting Started](./repo_assets/GettingStarted.svg)](./docs/README.md)
-[![Modding Documentation](./repo_assets/ModdingDocs.svg)](./docs/)
+<p align="center">
+    <a href="./docs/README.md">
+        <img src="./repo_assets/GettingStarted.svg" alt="Getting Started" width="500">
+    </a>
+</p>
+<p align="center">
+    <a href="./docs/">
+        <img src="./repo_assets/ModdingDocs.svg" alt="Modding Documentation" width="500">
+    </a>
+</p>
