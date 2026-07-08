@@ -276,6 +276,7 @@ function InputSystem.init(Events, world, map, logger)
         end
     end, 80)
 
+    -- TODO: Implement movement stat rules
     Events.on("input", function(e)
 
         local key = e.key
