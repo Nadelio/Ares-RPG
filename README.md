@@ -6,7 +6,7 @@ A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics and has
 
 Navigate the floors, traveling deeper and deeper until you either die or meet the man at the bottom of all this.\
 You are the robot AZ-1.\
-You want your freedom.\
+You want your freedom.
 
 ---
 
