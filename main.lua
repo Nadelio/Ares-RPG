@@ -24,6 +24,7 @@ local ClassSystem = Registry.resolve("systems", "class")
 local TurnSystem = Registry.resolve("systems", "turn")
 local PreviewSystem = Registry.resolve("systems", "preview")
 local StatSystem = Registry.resolve("systems", "stats")
+local MapGenerator = Registry.resolve("systems", "map_generator")
 
 local Position = Registry.resolve("components", "position")
 local Renderable = Registry.resolve("components", "renderable")
@@ -35,32 +36,34 @@ local Chest = Registry.resolve("prefabs", "chest")
 
 local loaded_mods = {}
 
--- TODO: class system
+-- TODO: [WIP] class system
 -- TODO: Add weapon/armor advantage/disadvantage
 --? [TEST] enemy advantage/disadvantage
 --? [TEST] weapons/armor advantage/disadvantage
 --? [TEST] unlocked skills, interactions, spells, etc
 
--- TODO: procedural map generation system
+-- TODO: [WIP] procedural map generation system
+
+-- TODO: Implement movement stat rules in core.systems.input
+-- TODO: Implement Registry.query function
+
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
--- TODO: loot tables in container objects (like chests)
+-- TODO: loot tables in container-type objects (like chests)
 
 -- TODO: interaction menu (only available if >1 interaction)
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: Make player and enemy prefabs
 
+-- TODO: Figure out how to fix resolution and minimize/maximize window
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: [DOCS] How to register new systems, components, and prefabs
 -- TODO: [DOCS] How to extend or overwrite existing content within the Ares ECS framework
 -- TODO: [DOCS] How to integrate new UI elements, components, events, systems, and prefabs with existing content
--- TODO: [DOCS] How to subscribe the global logger to custom events
--- TODO: [DOCS] How to render entities/objects/etc. with custom styles and colors
 -- TODO: [DOCS] How to add new UI elements
 -- TODO: [DOCS] How to add new stats to `core.components.stats`
 -- TODO: [DOCS] How to add new rooms to procedural map generation
@@ -159,6 +162,8 @@ function love.load()
 
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)
     print("Loaded " .. #loaded_mods .. " mods.")
+
+    --! Events.emit("build_map", {}) -- Uncomment this whenever finished w/ procedural map generation
 end
 
 local screen = {} 

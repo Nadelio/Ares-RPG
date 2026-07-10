@@ -56,6 +56,7 @@ Now your modding environment should be completely setup, so you are good to get 
 For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md), [Your First Mod](./first_mod.md), or [Your First Prefab](./first_prefab.md)
 
 # Table of Contents
+- [Prerequisites](./learn_first.md)
 - [Getting Started](./README.md)
 - [Ares ECS Framework](./ecs_framework.md)
 - [Your First Mod](./first_mod.md)
