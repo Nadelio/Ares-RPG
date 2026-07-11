@@ -3,6 +3,12 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
 
 jobs:
     build-windows:
@@ -115,15 +121,40 @@ jobs:
             cp artifacts/linux/AresRPG AresRPG-Linux && chmod +x AresRPG-Linux
             cd artifacts/macos && zip -r ../../AresRPG-MacOS.zip AresRPG.app && cd ../..
 
+        - name: Compute version number
+          id: version
+          run: |
+            offset="${{ vars.RUN_NUMBER_OFFSET }}"
+            offset="${offset:-0}"
+            echo "number=$(( ${{ github.run_number }} - offset ))" >> $GITHUB_OUTPUT
+
+        - name: Set pre-release warning
+          id: warning
+          shell: bash
+          run: |
+            if [[ "${{ github.event.inputs.prerelease }}" == "true" ]]; then
+              {
+                echo 'text<<EOF'
+                echo '> [!WARNING]'
+                echo '> This is an in development release, it is not in a complete state, there may be bugs or missing features'
+                echo 'EOF'
+              } >> $GITHUB_OUTPUT
+            else
+              echo 'text=' >> $GITHUB_OUTPUT
+            fi
+
         - name: Create release
           uses: softprops/action-gh-release@v2
           with:
-            tag_name: release-${{ github.run_number }}
-            name: "Release ${{ github.run_number }}"
+            tag_name: release-${{ steps.version.outputs.number }}
+            name: "Release ${{ steps.version.outputs.number }}"
+            prerelease: ${{ github.event.inputs.prerelease == 'true' }}
             body: |
-                ## Ares RPG — Version: ${{ github.run_number }}
+                ## Ares RPG - Version: ${{ steps.version.outputs.number }}
 
-                --- 
+                ---
+
+                ${{ steps.warning.outputs.text }}
 
                 ## Changelog
 
