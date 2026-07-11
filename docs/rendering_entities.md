@@ -49,16 +49,16 @@ The built-in named colors live in `core.render.colors`:
 local Colors = require("core.render.colors")
 ```
 
-Name | Approximate appearance
----|---
-`Colors.red` | Red
-`Colors.orange` | Orange
-`Colors.yellow` | Yellow
-`Colors.green` | Green
-`Colors.blue` | Blue
-`Colors.gray` | Gray
-`Colors.black` | Black
-`Colors.reset` | White (the default foreground)
+Name |
+---|
+`Colors.red` |
+`Colors.orange` |
+`Colors.yellow` |
+`Colors.green` |
+`Colors.blue` |
+`Colors.gray` |
+`Colors.black` |
+`Colors.reset` |
 
 Colors are plain Lua tables with three values in the `{r, g, b}` format where each channel is a number between `0` and `1`. You can define your own anywhere in your mod - no registration needed:
 
