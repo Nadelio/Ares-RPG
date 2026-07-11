@@ -64,7 +64,6 @@ local loaded_mods = {}
 
 -- TODO: [DOCS] How to extend or overwrite existing content within the Ares ECS framework
 -- TODO: [DOCS] How to integrate new UI elements, components, events, systems, and prefabs with existing content
--- TODO: [DOCS] How to render entities/objects/etc. with custom styles and colors
 -- TODO: [DOCS] How to add new UI elements
 -- TODO: [DOCS] How to add new stats to `core.components.stats`
 -- TODO: [DOCS] How to add new rooms to procedural map generation

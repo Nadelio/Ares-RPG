@@ -49,18 +49,19 @@ The built-in named colors live in `core.render.colors`:
 local Colors = require("core.render.colors")
 ```
 
-Name |
----|
-`Colors.red` |
-`Colors.orange` |
-`Colors.yellow` |
-`Colors.green` |
-`Colors.blue` |
-`Colors.gray` |
-`Colors.black` |
-`Colors.reset` |
+Name | Hex code | RGB float values 
+---|---|---
+`Colors.red` | `#FF4D4D` | `{1.0,0.3,0.3}`
+`Colors.orange` | `#FFB14D` | `{1.0,0.7,0.3}`
+`Colors.yellow` | `#FFFF4D` | `{1.0,1.0,0.3}`
+`Colors.green` | `#4DFF4D` | `{0.3,1.0,0.3}`
+`Colors.blue` | `#6699FF` | `{0.4,0.6,1.0}`
+`Colors.gray` | `#4D4D4D` | `{0.7,0.7,0.7}`
+`Colors.black` | `#000000` | `{0.0,0.0,0.0}`
+`Colors.reset` | `#FFFFFF` | `{1.0,1.0,1.0}`
+`Colors.cursor` | `#59A6FF` | `{0.35,0.65,1.0}`
 
-Colors are plain Lua tables with three values in the `{r, g, b}` format where each channel is a number between `0` and `1`. You can define your own anywhere in your mod - no registration needed:
+Colors are plain Lua tables with three values in the `{r, g, b}` format where each channel is a number between `0` and `1`. You can define your own anywhere in your mod, no registration needed:
 
 ```lua
 local my_colors = {
