@@ -8,10 +8,11 @@ function Logger.new()
     }, Logger) 
 end
 
-function Logger:add(eventType, data)
+function Logger:add(eventType, format_fn, data)
     local entry = {
         turn = self.turn,
         type = eventType,
+        format = format_fn,
         data = data or {}
     } 
 
@@ -37,6 +38,10 @@ function Logger:save(path)
 end
 
 function Logger:format(event)
+
+    if event.format then
+        return event.format(event)
+    end
 
     if event.type == "move" then
         return string.format(

@@ -7,7 +7,7 @@ function LoggerSystem.init(Events, world, map, logger)
     Events.on("move", function(e)
         if e.cancelled then return end
 
-        logger:add("move", {
+        logger:add("move", nil, {
             entity = e.entity.name,
             from = e.from,
             to = e.to
@@ -17,7 +17,7 @@ function LoggerSystem.init(Events, world, map, logger)
     Events.on("interact", function(e)
         if e.cancelled then return end
 
-        logger:add("interact", {
+        logger:add("interact", nil, {
             actor = e.actor and e.actor.name or "Unknown",
             target = e.target and (e.target.name or "Unknown") or "Unknown",
             type = e.target and (e.target.type or "object") or "object"
@@ -25,32 +25,32 @@ function LoggerSystem.init(Events, world, map, logger)
     end, -100) 
 
     Events.on("inventory_equip", function(e)
-        logger:add("inventory_equip", {
+        logger:add("inventory_equip", nil, {
             actor = e.entity.name,
             target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         })
     end, -100)
     Events.on("inventory_unequip", function(e)
-        logger:add("inventory_unequip", {
+        logger:add("inventory_unequip", nil, {
             actor = e.entity.name,
             target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         }) 
     end, -100)
     Events.on("inventory_pickup", function(e)
-        logger:add("inventory_pickup", {
+        logger:add("inventory_pickup", nil, {
             actor = e.actor.name,
             target = e.target.name,
         })
     end, -100)
     Events.on("inventory_drop", function(e)
-        logger:add("inventory_drop", {
+        logger:add("inventory_drop", nil, {
             actor = e.entity.name,
             target = LoggerSystem.safe_item(e.entity, e.index, e.item),
         })
     end, -100)
 
     Events.on("level_up", function(e)
-        logger:add("level_up", {
+        logger:add("level_up", nil, {
             entity = e.entity.name,
             levels = e.amount,
             new_level = e.new_level or e.entity.level,
@@ -58,7 +58,7 @@ function LoggerSystem.init(Events, world, map, logger)
     end, -100) 
 
     Events.on("attack", function(e)
-        logger:add("attack", {
+        logger:add("attack", nil, {
             attacker = e.attacker.name,
             target = e.target.name,
             damage = e.damage

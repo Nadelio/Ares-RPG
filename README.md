@@ -1,23 +1,29 @@
 # Ares RPG
 
-A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics.\
+A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics and has heavy modding support.
 
 ---
 
 Navigate the floors, traveling deeper and deeper until you either die or meet the man at the bottom of all this.\
 You are the robot AZ-1.\
-You want your freedom.\
+You want your freedom.
 
 ---
 
-<!-- preview images here -->
-<p float="left">
-    <img>
-    <img>
-    <img>
+<p float="left" align="center">
+    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
+    <img src="./repo_assets/beta_screenshot.png" width="300">
+    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
 </p>
 
-## [Download Here!](https://github.com/Nadelio/Ares-RPG/releases)
+<p align="center">
+    Go to Downloads
+</p>
+<p align="center">
+    <a href="https://github.com/Nadelio/Ares-RPG/releases">
+        <img src="./repo_assets/download_icon.png" alt="Download Here!" width="100">
+    </a>
+</p>
 
 --- 
 
@@ -32,11 +38,17 @@ bash build.sh
 ## Dependencies
 - Love2D, the library used for multiplatform input and audio (as well as the window and some other minor things)
 - `zip`, used for creating the `.love` archive
-    - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager
+    - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager (if you don't already have it)
 
 ---
 
-[![Getting Started](./repo_assets/getting_started.png)](./docs/README.md)
-## [Modding Documentation](./docs/)
-
----
+<p align="center">
+    <a href="./docs/README.md">
+        <img src="./repo_assets/GettingStarted.svg" alt="Getting Started" width="500">
+    </a>
+</p>
+<p align="center">
+    <a href="./docs/">
+        <img src="./repo_assets/ModdingDocs.svg" alt="Modding Documentation" width="500">
+    </a>
+</p>
