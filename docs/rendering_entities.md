@@ -73,6 +73,16 @@ local my_colors = {
 
 Pass them directly to `Renderable.new` the same way you would a named color from `core.render.colors`.
 
+> [!NOTE]
+> You can also override the default colors by simply using this init function template in your `mod.lua`:
+> ```lua
+> init = function()
+>   local Colors = require("core.render.colors")
+>   Colors.red = {1.0, 0.0, 0.0} -- simply access each built-in color field and override their values
+>   Colors.peach = {1.0, 0.67, 0.46} -- you can even add new colors this way
+> end
+> ```
+
 ---
 
 ## Draw Order
