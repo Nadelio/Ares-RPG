@@ -29,7 +29,7 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: AresRPG-Windows
-            path: dist/AresRPG
+            path: dist/
 
     build-linux:
       runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: AresRPG-macOS
-            path: dist/AresRPG
+            path: dist/AresRPG.app
 
     release:
         runs-on: ubuntu-latest
@@ -133,4 +133,4 @@ jobs:
             files: |
                 AresRPG-Windows.zip
                 AresRPG-Linux
-                AresRPG-MacOS.app
+                AresRPG-MacOS.zip
