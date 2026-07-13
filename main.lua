@@ -63,12 +63,6 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: [DOCS] How to add new UI elements
--- TODO: [DOCS] How to add new stats to core.components.stats
--- TODO: [DOCS] How to add new TileStyles
--- TODO: [DOCS] How to add new rarities
--- TODO: [DOCS] How to add new classes and skill/spell trees
-
 local logger = Logger.new()
 local map = Map.new({})
 local world = World.new()
@@ -140,7 +134,7 @@ function love.load()
     StatSystem.equip(player.stats, player.inventory)
     table.insert(player.stats.equipped_items, player.inventory)
 
-    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single item
+    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single starter item
     ClassSystem.init(Events, world, map, logger)
 
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)

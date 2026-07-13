@@ -2,12 +2,19 @@ local Input = {}
 local queue = {}
 
 function love.keypressed(key, scancode, isrepeat)
-    local eventKey = key
+    local eventKey = ""
 
-    if key == "z" and love.keyboard.isDown("lctrl") then
-        eventKey = "ctrl+z"
+    if love.keyboard.isDown("lctrl") then
+        eventKey = eventKey .. "ctrl+"
+    end
+    if love.keyboard.isDown("lalt") then
+        eventKey = eventKey .. "alt+"
+    end
+    if love.keyboard.isDown("lshift") then
+        eventKey = eventKey .. "shift+"
     end
 
+    eventKey = eventKey .. key
     table.insert(queue, eventKey)
 end
 

@@ -170,7 +170,7 @@ function MapGenerator.init(Events, world, map, logger)
         map.tiles   = tiles
 
         -- call placer function here
-        logger:add("Objects and Entities Placed")
+        logger:add("Objects and Entities Placed") --! Only generate loot tables whenever a player opens the container for the first time
     end, 100)
 end
 
