@@ -17,17 +17,17 @@ function Door.new(data)
     })
 
     obj.interactable = Interactable.new({
-        interact_func = function(entity, e)
-            if entity.collides then
+        interact_func = function(self, e)
+            if self.collides then
                 -- open the door
-                entity.collides         = false
-                entity.renderable.glyph = "/"
-                entity.renderable.fg    = Colors.gray
+                self.collides         = false
+                self.renderable.glyph = "/"
+                self.renderable.fg    = Colors.gray
             else
                 -- close the door
-                entity.collides         = true
-                entity.renderable.glyph = "+"
-                entity.renderable.fg    = Colors.yellow
+                self.collides         = true
+                self.renderable.glyph = "+"
+                self.renderable.fg    = Colors.yellow
             end
         end,
     })

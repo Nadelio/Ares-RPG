@@ -44,8 +44,7 @@ local loaded_mods = {}
 
 -- TODO: [WIP] procedural map generation system
 
--- TODO: Implement movement stat rules in core.systems.input
--- TODO: Implement Registry.query function
+-- TODO: Implement movement stat rules in core.systems.movement
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
@@ -56,39 +55,21 @@ local loaded_mods = {}
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: Make player and enemy prefabs
+-- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
 
 -- TODO: Figure out how to fix resolution and minimize/maximize window
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor input system to more cleanly work with certain game states
 
--- TODO: [DOCS] How to extend or overwrite existing content within the Ares ECS framework
--- TODO: [DOCS] How to integrate new UI elements, components, events, systems, and prefabs with existing content
 -- TODO: [DOCS] How to add new UI elements
--- TODO: [DOCS] How to add new stats to `core.components.stats`
--- TODO: [DOCS] How to add new rooms to procedural map generation
+-- TODO: [DOCS] How to add new stats to core.components.stats
 -- TODO: [DOCS] How to add new TileStyles
 -- TODO: [DOCS] How to add new rarities
 -- TODO: [DOCS] How to add new classes and skill/spell trees
 
 local logger = Logger.new()
-local map = Map.new({
-    {
-        { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }
-    },
-    {
-        { type = "W" }, { type = "X" }, { type = "X" }, { type = "X" }, { type = "W" }, { type = "X" }, { type = "W" }
-    },
-    {
-        { type = "W" }, { type = "X" }, { type = "X" }, { type = "X" }, { type = "X" }, { type = "X" }, { type = "W" }
-    },
-    {
-        { type = "W" }, { type = "X" }, { type = "X" }, { type = "X" }, { type = "W" }, { type = "X" }, { type = "W" }
-    },
-    {
-        { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }, { type = "W" }
-    }
-})
+local map = Map.new({})
 local world = World.new()
 local player = world:add({
     name = "Player",
@@ -100,8 +81,6 @@ local player = world:add({
 
     level = 1
 })
-
-map:add_object(Chest.new({x = 4, y = 2}))
 
 world.player = player
 
@@ -151,6 +130,7 @@ function love.load()
     LevelSystem.init(Events, world, map, logger)
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
+    MapGenerator.init(Events, world, map, logger)
 
     --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
@@ -163,7 +143,8 @@ function love.load()
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)
     print("Loaded " .. #loaded_mods .. " mods.")
 
-    --! Events.emit("build_map", {}) -- Uncomment this whenever finished w/ procedural map generation
+    --? Build the map after loading the mods incase a mod changes how map generation works
+    Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
 end
 
 local screen = {} 

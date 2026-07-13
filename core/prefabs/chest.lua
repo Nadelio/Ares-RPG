@@ -3,14 +3,17 @@ local Registry = require("core.registry")
 local Renderable = require("core.components.renderable")
 local Position   = require("core.components.position")
 local Interactable = require("core.components.interactable")
-local Inventory = require("core.components.inventory")
+local LootTable = require("core.components.loot_table")
 local Object = require("core.components.object")
+
 local UI = require("core.systems.ui")
+
+local CoinItem = require("core.prefabs.coin")
 
 local Chest = {}
 
 local function clamp_chest_slot(player, chest)
-    local items = chest and chest.inventory and chest.inventory.items or {}
+    local items = chest and chest.loot_table.inventory and chest.loot_table.inventory.items or {}
     local max_slot = math.max(1, #items)
 
     player.ui.chest_selected_slot = math.max(1, math.min(player.ui.chest_selected_slot or 1, max_slot))
@@ -26,8 +29,10 @@ function Chest.new(data)
         renderable = Renderable.new({ glyph = "C" }),
     })
 
-    obj.inventory = Inventory.new({
-        items = data.items or {}
+    obj.loot_table = LootTable.new({
+        valid_items = {
+            CoinItem
+        }
     })
     obj.interactable = Interactable.new({
         interact_func = function(entity, e)
@@ -78,7 +83,7 @@ UI.register("chest_inventory", {
         local player = context.player
         local chest = player.ui.chest_target
 
-        return UI.inventory_panel(chest.name or "Chest", chest.inventory.items or {}, player.ui.chest_selected_slot, {
+        return UI.inventory_panel(chest.name or "Chest", chest.loot_table.inventory.items or {}, player.ui.chest_selected_slot, {
             active = player.ui.inventory_focus == "chest",
             min_height = 7,
             width = 24,

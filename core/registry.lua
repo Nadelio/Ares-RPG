@@ -26,7 +26,14 @@ function Registry.resolve(category, name)
 end
 
 function Registry.query(category, filter_fn)
-    -- TODO: implement a query function that collects an array of all of Registry[category] that matches the filter function
+    local query_array = {}
+    for _, value in pairs(Registry[category]) do
+        if filter_fn(value) then
+            table.insert(query_array, value)
+        end
+    end
+
+    return query_array
 end
 
 return Registry

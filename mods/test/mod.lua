@@ -6,5 +6,6 @@ return {
     dependencies = {
         "foo"
     },
-    init = function() print("Hello from Test Mod!") end
+    init = function() print("Hello from Test Mod!") end,
+    disabled = true
 }

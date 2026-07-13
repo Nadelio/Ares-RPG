@@ -9,5 +9,6 @@ return {
         Colors.red = {1.0, 0.0, 0.0}
         Colors.green = {0.0, 1.0, 0.0}
         Colors.blue = {0.0, 0.0, 1.0}
-    end
+    end,
+    disabled = true
 }

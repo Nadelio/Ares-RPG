@@ -135,10 +135,42 @@ return Spawner
 
 ---
 
+## Registry.query
+
+```lua
+Registry.query(category, filter_fn)
+```
+
+Collects an array of all values in `Registry[category]` that match the filter function. `filter_fn` receives a single registry entry and must return a boolean.
+
+| Argument    | Type       | Description                                                        |
+|-------------|------------|--------------------------------------------------------------------|
+| `category`  | `string`   | One of `"systems"`, `"components"`, or `"prefabs"`                 |
+| `filter_fn` | `function` | Called with each registered value, return `true` to include it    |
+
+Returns: an array of every matching value (may be empty if nothing matches).
+
+Ex:
+```lua
+local Registry = require("core.registry")
+
+-- collect every object prefab whose type is "container"
+local containers = Registry.query("prefabs", function(prefab)
+    return prefab.new({}).type == "container"
+end)
+
+for i, prefab in ipairs(containers) do
+    map:add_object(prefab.new({ x = 1 + i, y = 1 })) -- place all container prefabs in a row, starting at the top left of the map
+end
+```
+
+---
+
 ## Summary
 
-| Function              | On duplicate | On missing | Use case                                       |
-|-----------------------|-------------|------------|------------------------------------------------|
-| `Registry.register`   | errors  | | Adding something new                           |
-| `Registry.overwrite`  | warns   | | Intentionally replacing existing behavior      |
-| `Registry.resolve`    | | errors | Retrieving something you know has been loaded  |
+| Function              | On duplicate | On missing | Use case                                             |
+|-----------------------|-------------|------------|------------------------------------------------------|
+| `Registry.register`   | errors  | | Adding something new                                 |
+| `Registry.overwrite`  | warns   | | Intentionally replacing existing behavior            |
+| `Registry.resolve`    | | errors | Retrieving something you know has been loaded        |
+| `Registry.query`      | | | Collecting all entries in a category that match a filter |
