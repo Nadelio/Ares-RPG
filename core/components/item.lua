@@ -24,7 +24,7 @@ function Item.new(data)
         equipped = false,
         dropped = false,
 
-        renderable = Renderable.new({ glyph = "?",  italics = italics })
+        renderable = data.renderable or Renderable.new({ glyph = "?",  italics = italics })
     }
 end
 

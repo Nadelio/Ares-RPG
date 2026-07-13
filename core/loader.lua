@@ -207,7 +207,7 @@ function Loader.load_mod_content(events, world, map, logger)
     local mods_by_id, alias_to_id = discover_mods(mods_root)
 
     for _, manifest in ipairs(order_mods(mods_by_id, alias_to_id)) do
-        if not Loader.loaded_mods[manifest.id] then
+        if not Loader.loaded_mods[manifest.id] and not manifest.disabled then
             require_category("components", manifest.root .. "/components")
             local mod_systems = require_category("systems", manifest.root .. "/systems")
             require_category("prefabs", manifest.root .. "/prefabs")

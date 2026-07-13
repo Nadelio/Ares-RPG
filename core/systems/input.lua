@@ -220,7 +220,7 @@ local function close_chest_ui(player, keep_inventory_open)
 end
 
 local function transfer_to_player(player, chest)
-    local items = chest.inventory.items or {}
+    local items = chest.loot_table.inventory.items or {}
     local index = clamp_slot(player.ui.chest_selected_slot, #items)
     local item = items[index]
 
@@ -260,7 +260,7 @@ local function transfer_to_chest(player, chest, Events, map)
     end
 
     table.remove(items, index)
-    table.insert(chest.inventory.items, item)
+    table.insert(chest.loot_table.inventory.items, item)
 
     player.stats.current.capacity = player.stats.current.capacity - item.size
 
@@ -281,7 +281,7 @@ function InputSystem.init(Events, world, map, logger)
 
         local key = e.key
         local player = e.entity
-        local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.inventory
+        local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.loot_table.inventory
 
         player.turn_buffer = player.turn_buffer or TurnBuffer.new()
 
@@ -362,7 +362,7 @@ function InputSystem.init(Events, world, map, logger)
             end
         elseif key == "down" then
             if chest_open and player.ui.inventory_focus == "chest" then
-                local item_count = #player.ui.chest_target.inventory.items
+                local item_count = #player.ui.chest_target.loot_table.inventory.items
                 player.ui.chest_selected_slot = math.min(math.max(1, item_count), player.ui.chest_selected_slot + 1)
             elseif player.ui.inventory_open then
                 local item_count = player.inventory and #player.inventory.items or 0
