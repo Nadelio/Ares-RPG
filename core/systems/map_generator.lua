@@ -140,7 +140,6 @@ local function find_first_room(node)
         or (node.right and find_first_room(node.right))
 end
 
--- TODO: Add a placer function to place objects/interactables/entities (anything with both a Renderable component and a Position component)
 function MapGenerator.init(Events, world, map, logger)
     Events.on("build_map", function(e)
         local w = (e.dimensions and e.dimensions.w) or 60
@@ -158,6 +157,7 @@ function MapGenerator.init(Events, world, map, logger)
         split_recursive(root, 5)
         carve_rooms(root, tiles)
         connect_nodes(root, tiles)
+        logger:add("Generated Map")
 
         local spawn = find_first_room(root)
         if spawn and world.player and world.player.position then
@@ -166,11 +166,10 @@ function MapGenerator.init(Events, world, map, logger)
             world.player.position.x = sx
             world.player.position.y = sy
         end
-
-        map.tiles   = tiles
-        logger:add("Generated Map")
         logger:add("Player Placed")
-        map.objects = {}
+        map.tiles   = tiles
+
+        -- call placer function here
         logger:add("Objects and Entities Placed")
     end, 100)
 end

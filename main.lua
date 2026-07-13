@@ -25,6 +25,7 @@ local TurnSystem = Registry.resolve("systems", "turn")
 local PreviewSystem = Registry.resolve("systems", "preview")
 local StatSystem = Registry.resolve("systems", "stats")
 local MapGenerator = Registry.resolve("systems", "map_generator")
+local LootTableSystem = Registry.resolve("systems", "loot_table")
 
 local Position = Registry.resolve("components", "position")
 local Renderable = Registry.resolve("components", "renderable")
@@ -43,8 +44,8 @@ local loaded_mods = {}
 --? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: [WIP] procedural map generation system
-
--- TODO: Implement movement stat rules in core.systems.movement
+-- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
+-- TODO: larger map support (scrolling map and render only a portion of map)
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
@@ -109,6 +110,7 @@ end, 100)
 
 
 function love.load()
+    math.randomseed(os.time(), os.time())
     love._openConsole()
     Fonts.init()
 
@@ -131,6 +133,7 @@ function love.load()
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
     MapGenerator.init(Events, world, map, logger)
+    LootTableSystem.init(Events, world, map, logger)
 
     --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
@@ -145,6 +148,22 @@ function love.load()
 
     --? Build the map after loading the mods incase a mod changes how map generation works
     Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
+    
+    map:add_object(Chest.new({
+        x = player.position.x + 1,
+        y = player.position.y
+    })) -- place a chest to the right of the player
+    Events.emit("generate_loot_table", { -- fill chest with items
+        container = map:get_object(player.position.x + 1, player.position.y),
+    })
+
+    map:add_object(Chest.new({
+        x = player.position.x,
+        y = player.position.y + 1
+    })) -- place a chest below the player
+    Events.emit("generate_loot_table", {
+        container = map:get_object(player.position.x, player.position.y + 1),
+    })
 end
 
 local screen = {} 

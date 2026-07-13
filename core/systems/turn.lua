@@ -37,6 +37,8 @@ function TurnSystem.init(Events, world, map, logger)
 
         end
 
+        Events.emit("turn_end", {})
+
     end, 100) 
 
     

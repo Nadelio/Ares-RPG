@@ -11,9 +11,9 @@ function Coin.new(data)
     local c = Item.new({
         name = "Coin",
         description = "A gold coin",
-        rarity = RarityColors.common,
+        rarity = "coin",
         size = 1,
-        renderable = Renderable.new({ glyph = "$", fg = Colors.yellow })
+        renderable = Renderable.new({ glyph = "$" })
     })
 
     c.value = data.value

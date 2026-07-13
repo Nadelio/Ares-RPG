@@ -77,18 +77,24 @@ UI.register("chest_inventory", {
             and player.ui
             and player.ui.chest_open
             and player.ui.chest_target
-            and player.ui.chest_target.inventory
+            and player.ui.chest_target.loot_table
+            and player.ui.chest_target.loot_table.inventory
     end,
     build = function(context)
         local player = context.player
         local chest = player.ui.chest_target
 
-        return UI.inventory_panel(chest.name or "Chest", chest.loot_table.inventory.items or {}, player.ui.chest_selected_slot, {
-            active = player.ui.inventory_focus == "chest",
-            min_height = 7,
-            width = 24,
-        })
-    end,
+        return UI.inventory_panel(
+            chest.name or "Chest",
+            chest.loot_table.inventory.items or {},
+            player.ui.chest_selected_slot,
+            {
+                active = player.ui.inventory_focus == "chest",
+                min_height = 7,
+                width = 24,
+            }
+        )
+    end
 })
 
 Registry.register("prefabs", "chest", Chest)
