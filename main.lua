@@ -47,6 +47,8 @@ local loaded_mods = {}
 -- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
 -- TODO: larger map support (scrolling map and render only a portion of map)
 
+-- TODO: [BUG] Level up screen always assumes that the player has at least one available skill, even on levels where the current class has no unlockable skills/masteries
+
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
@@ -61,7 +63,7 @@ local loaded_mods = {}
 -- TODO: Figure out how to fix resolution and minimize/maximize window
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
---? Probably should also refactor input system to more cleanly work with certain game states
+--? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
 local logger = Logger.new()
 local map = Map.new({})

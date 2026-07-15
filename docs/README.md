@@ -1,6 +1,6 @@
 # Getting Started
 
-First thing: Download and install [Love2D](https://love2d.org/)
+First thing: Download and install [Love2D](https://love2d.org/) and [Lua 5.4+](https://www.lua.org/download.html)
 
 Love2D is required for the game to run, by default it is bundled with the executable, but you might want to read the source code without having a browser open to Github.
 
@@ -25,7 +25,8 @@ return {
     description = "",
     version = "",
     dependencies = {},
-    init = function() end
+    init = function() end,
+    disabled = false,
 }
 ```
 
@@ -36,6 +37,8 @@ The name is what will be shown in the Mod List menu, same with the description a
 I'd suggest following the [Semantic Versioning Guidelines](https://semver.org/) for the version string.
 
 The `dependencies` table is an array of mod IDs (as strings).
+
+The `disabled` is a boolean field that tells the mod loader to ignore your mod if its value is `true`
 
 The `init` function is a function that takes no parameters, and returns nothing. It is purely used as a post-load setup function, please don't use it to inject malware, thanks \<3
 
