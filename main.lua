@@ -46,8 +46,7 @@ local loaded_mods = {}
 -- TODO: [WIP] procedural map generation system
 -- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
 -- TODO: larger map support (scrolling map and render only a portion of map)
-
--- TODO: [BUG] Level up screen always assumes that the player has at least one available skill, even on levels where the current class has no unlockable skills/masteries
+-- TODO: add back T intersection rendering for walls in TileStyles
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)

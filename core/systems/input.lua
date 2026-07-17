@@ -27,15 +27,15 @@ local function get_level_up_tabs(player)
 end
 
 local function has_pending_level_up_choices(player)
-    local options = ClassSystem.get_level_up_options(player)
+    local tabs = ClassSystem.get_level_up_choices(player) or {}
 
-    if not options then
-        return false
+    for _, tab in ipairs(tabs) do
+        if tab.pending > 0 and #tab.entries > 0 then
+            return true
+        end
     end
 
-    return options.pending_stat_choices > 0
-        or options.pending_skill_choices > 0
-        or options.pending_mastery_choices > 0
+    return false
 end
 
 local function sync_level_up_menu(player)

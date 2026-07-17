@@ -419,7 +419,7 @@ function ClassSystem.get_level_up_choices(entity)
 		})
 	end
 
-	if options.pending_skill_choices > 0 or #options.skills > 0 or #options.spells > 0 then
+	if #options.skills > 0 or #options.spells > 0 then
 		local entries = {}
 
 		for _, ability in ipairs(options.skills) do
@@ -446,7 +446,7 @@ function ClassSystem.get_level_up_choices(entity)
 		})
 	end
 
-	if options.pending_mastery_choices > 0 or #options.mastery_skills > 0 then
+	if #options.mastery_skills > 0 then
 		local entries = {}
 
 		for _, ability in ipairs(options.mastery_skills) do
