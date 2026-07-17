@@ -11,9 +11,18 @@ You want your freedom.
 ---
 
 <p float="left" align="center">
-    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
-    <img src="./repo_assets/beta_screenshot.png" width="300">
-    <!-- <img src="./repo_assets/beta_screenshot.png" width="300"> -->
+    <img src="./repo_assets/level_up_menu_demo.png" width="300">
+    <img src="./repo_assets/inventory_demo.png" width="300">
+    <img src="./repo_assets/procedural_generation_demo.png" width="300">
+</p>
+
+<p align="center">
+    <a href="./docs/README.md">
+        <img src="./repo_assets/GettingStarted.svg" alt="Getting Started" width="400">
+    </a>
+    <a href="./docs/">
+        <img src="./repo_assets/ModdingDocs.svg" alt="Modding Documentation" width="400">
+    </a>
 </p>
 
 <p align="center">
@@ -39,16 +48,3 @@ bash build.sh
 - Love2D, the library used for multiplatform input and audio (as well as the window and some other minor things)
 - `zip`, used for creating the `.love` archive
     - MacOS has `zip` built in, but Windows and Linux will need to download it via your desired package manager (if you don't already have it)
-
----
-
-<p align="center">
-    <a href="./docs/README.md">
-        <img src="./repo_assets/GettingStarted.svg" alt="Getting Started" width="500">
-    </a>
-</p>
-<p align="center">
-    <a href="./docs/">
-        <img src="./repo_assets/ModdingDocs.svg" alt="Modding Documentation" width="500">
-    </a>
-</p>
