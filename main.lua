@@ -106,11 +106,6 @@ end, 100)
 
 function love.load(arg)
     math.randomseed(os.time(), os.time())
-    if arg[1] == "-w" or arg[1] == "--windows-console" then
-        if love.system.getOS() == "Windows" then
-            love._openConsole()
-        end
-    end
 
     local needhdpi = love.system.getOS() == "OS X"
     love.window.setMode(800, 600, { resizable = true, minwidth = 800, minheight = 600, highdpi = needhdpi })
