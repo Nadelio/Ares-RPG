@@ -25,6 +25,7 @@ local TurnSystem = Registry.resolve("systems", "turn")
 local PreviewSystem = Registry.resolve("systems", "preview")
 local StatSystem = Registry.resolve("systems", "stats")
 local MapGenerator = Registry.resolve("systems", "map_generator")
+local LootTableSystem = Registry.resolve("systems", "loot_table")
 
 local Position = Registry.resolve("components", "position")
 local Renderable = Registry.resolve("components", "renderable")
@@ -43,8 +44,9 @@ local loaded_mods = {}
 --? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: [WIP] procedural map generation system
-
--- TODO: Implement movement stat rules in core.systems.movement
+-- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
+-- TODO: larger map support (scrolling map and render only a portion of map)
+-- TODO: add back T intersection rendering for walls in TileStyles
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
@@ -57,16 +59,9 @@ local loaded_mods = {}
 -- TODO: Make player and enemy prefabs
 -- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
 
--- TODO: Figure out how to fix resolution and minimize/maximize window
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
---? Probably should also refactor input system to more cleanly work with certain game states
-
--- TODO: [DOCS] How to add new UI elements
--- TODO: [DOCS] How to add new stats to core.components.stats
--- TODO: [DOCS] How to add new TileStyles
--- TODO: [DOCS] How to add new rarities
--- TODO: [DOCS] How to add new classes and skill/spell trees
+--? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
 local logger = Logger.new()
 local map = Map.new({})
@@ -108,8 +103,12 @@ Events.on("interact", function(e)
 end, 100)
 
 
-function love.load()
-    love._openConsole()
+function love.load(arg)
+    math.randomseed(os.time(), os.time())
+
+    local needhdpi = love.system.getOS() == "OS X"
+    love.window.setMode(800, 600, { resizable = true, minwidth = 800, minheight = 600, highdpi = needhdpi })
+
     Fonts.init()
 
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -131,13 +130,14 @@ function love.load()
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
     MapGenerator.init(Events, world, map, logger)
+    LootTableSystem.init(Events, world, map, logger)
 
     --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true
     StatSystem.equip(player.stats, player.inventory)
     table.insert(player.stats.equipped_items, player.inventory)
 
-    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single item
+    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single starter item
     ClassSystem.init(Events, world, map, logger)
 
     loaded_mods = Loader.load_mod_content(Events, world, map, logger)
@@ -145,6 +145,22 @@ function love.load()
 
     --? Build the map after loading the mods incase a mod changes how map generation works
     Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
+    
+    map:add_object(Chest.new({
+        x = player.position.x + 1,
+        y = player.position.y
+    })) -- place a chest to the right of the player
+    Events.emit("generate_loot_table", { -- fill chest with items
+        container = map:get_object(player.position.x + 1, player.position.y),
+    })
+
+    map:add_object(Chest.new({
+        x = player.position.x,
+        y = player.position.y + 1
+    })) -- place a chest below the player
+    Events.emit("generate_loot_table", {
+        container = map:get_object(player.position.x, player.position.y + 1),
+    })
 end
 
 local screen = {} 

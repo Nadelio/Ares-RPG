@@ -34,15 +34,6 @@ local function isVisibleWall(map, x, y)
     )
 end
 
-local function isCorridor(map, x, y)
-    if x < 1 or y < 1 then return false end
-    local row = map.tiles[y]
-    if not row then return false end
-    local tile = row[x]
-    if not tile then return false end
-    return tile.type == "C"
-end
-
 local function mask(map, x, y)
     local m = 0
 

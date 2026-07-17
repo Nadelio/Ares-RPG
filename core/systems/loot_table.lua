@@ -16,7 +16,7 @@ function LootTableSystem.init(Events, world, map, logger)
         
         logger:add("generate_loot_table", function(entry)
             return string.format(
-                "[Turn %d] Generated loot table for %s",
+                "[Action %d] Generated loot table for %s",
                 entry.turn,
                 entry.data.container.name
             )

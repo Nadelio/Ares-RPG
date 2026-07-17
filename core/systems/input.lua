@@ -17,7 +17,7 @@ local function clamp_inventory_slots(player)
     player.ui.selected_slot = clamp_slot(player.ui.selected_slot, #player_items)
 
     local chest = player.ui.chest_target
-    local chest_items = chest and chest.inventory and chest.inventory.items or {}
+    local chest_items = chest and chest.loot_table and chest.loot_table.inventory and chest.loot_table.inventory.items or {}
 
     player.ui.chest_selected_slot = clamp_slot(player.ui.chest_selected_slot, #chest_items)
 end
@@ -27,15 +27,15 @@ local function get_level_up_tabs(player)
 end
 
 local function has_pending_level_up_choices(player)
-    local options = ClassSystem.get_level_up_options(player)
+    local tabs = ClassSystem.get_level_up_choices(player) or {}
 
-    if not options then
-        return false
+    for _, tab in ipairs(tabs) do
+        if tab.pending > 0 and #tab.entries > 0 then
+            return true
+        end
     end
 
-    return options.pending_stat_choices > 0
-        or options.pending_skill_choices > 0
-        or options.pending_mastery_choices > 0
+    return false
 end
 
 local function sync_level_up_menu(player)
@@ -281,7 +281,7 @@ function InputSystem.init(Events, world, map, logger)
 
         local key = e.key
         local player = e.entity
-        local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.loot_table.inventory
+        local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.loot_table and player.ui.chest_target.loot_table.inventory
 
         player.turn_buffer = player.turn_buffer or TurnBuffer.new()
 

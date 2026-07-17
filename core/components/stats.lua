@@ -8,8 +8,8 @@ local EntityStates = {
 
 Stats.definitions = {
     { key = "health", label = "HP", current = true, current_mode = "remaining" },
-    { key = "movement", label = "MOVE", current = true, current_mode = "remaining" },
     { key = "capacity", label = "LOAD", current = true, current_mode = "usage" },
+    { key = "movement", label = "MOVE" },
     { key = "attack", label = "ATK" },
     { key = "defense", label = "DEF" },
     { key = "luck", label = "LCK" },
@@ -45,7 +45,6 @@ function Stats.new(data)
 
         current = {
             health = data.health or 0,
-            movement = data.movement or 0,
             capacity = data.capacity or 0
         },
 
