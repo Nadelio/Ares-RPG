@@ -106,8 +106,10 @@ end, 100)
 
 function love.load(arg)
     math.randomseed(os.time(), os.time())
-    if arg[1] == "-d" or arg[1] == "--debug" then
-        love._openConsole()
+    if arg[1] == "-w" or arg[1] == "--windows-console" then
+        if love.system.getOS() == "Windows" then
+            love._openConsole()
+        end
     end
 
     local needhdpi = love.system.getOS() == "OS X"
