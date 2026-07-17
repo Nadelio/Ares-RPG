@@ -60,7 +60,6 @@ local loaded_mods = {}
 -- TODO: Make player and enemy prefabs
 -- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
 
--- TODO: Figure out how to fix resolution and minimize/maximize window
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
@@ -105,9 +104,15 @@ Events.on("interact", function(e)
 end, 100)
 
 
-function love.load()
+function love.load(arg)
     math.randomseed(os.time(), os.time())
-    love._openConsole()
+    if arg[1] == "-d" or arg[1] == "--debug" then
+        love._openConsole()
+    end
+
+    local needhdpi = love.system.getOS() == "OS X"
+    love.window.setMode(800, 600, { resizable = true, minwidth = 800, minheight = 600, highdpi = needhdpi })
+
     Fonts.init()
 
     love.graphics.setDefaultFilter("nearest", "nearest")
