@@ -11,9 +11,9 @@ You want your freedom.
 ---
 
 <p float="left" align="center">
-    <img src="./repo_assets/level_up_menu_demo.png" width="300">
-    <img src="./repo_assets/inventory_demo.png" width="300">
-    <img src="./repo_assets/procedural_generation_demo.png" width="300">
+    <img src="./repo_assets/level_up_menu_demo.png" width="225">
+    <img src="./repo_assets/inventory_demo.png" width="225">
+    <img src="./repo_assets/procedural_generation_demo.png" width="225">
 </p>
 
 <p align="center">
