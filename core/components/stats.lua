@@ -12,7 +12,8 @@ Stats.definitions = {
     { key = "movement", label = "MOVE" },
     { key = "attack", label = "ATK" },
     { key = "defense", label = "DEF" },
-    { key = "luck", label = "LCK" },
+    { key = "luck", label = "LUCK" },
+    { key = "level", label = "LVL"}
 }
 
 Stats.definition_map = {}
@@ -35,12 +36,12 @@ function Stats.new(data)
             luck = data.luck or 0,
             defense = data.defense or 0,
             attack = data.attack or data.unarmed_atk or 0,
-            capacity = data.capacity or 1
+            capacity = data.capacity or 1,
+            level = data.level or 1,
         },
 
         bonuses = {},
 
-        level = data.level or 1,
         current_state = EntityStates.DEAD,
 
         current = {

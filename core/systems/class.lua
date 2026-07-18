@@ -323,8 +323,8 @@ function ClassSystem.assign(entity, class_id, Events)
 
 	entity.stats.class = definition.name
 	entity.class_id = resolved_id
-	entity.level = entity.level or entity.stats.level or 1
-	entity.stats.level = entity.level
+	entity.level = entity.level or entity.stats.base.level or 1
+	entity.stats.base.level = entity.level
 	entity.stats.current.health = StatSystem.get(entity.stats, "health")
 	entity.stats.current.movement = StatSystem.get(entity.stats, "movement")
 	entity.stats.current.capacity = entity.stats.current.capacity or 0
@@ -604,7 +604,7 @@ function ClassSystem.init(Events, world, map, logger)
 			return
 		end
 
-		entity.stats.level = entity.level or entity.stats.level
+		entity.stats.base.level = entity.level or entity.stats.base.level
 
 		local previous_level = math.max(0, (entity.level or 1) - levels)
 

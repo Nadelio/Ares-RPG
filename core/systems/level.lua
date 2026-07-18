@@ -28,7 +28,7 @@ local function ensure_progression(entity)
     entity.experience_to_next_level = entity.experience_to_next_level or (5 + entity.level)
 
     if entity.stats then
-        entity.stats.level = entity.level
+        entity.stats.base.level = entity.level
     end
 
     return entity
@@ -233,7 +233,7 @@ function LevelSystem.init(Events, world, map, logger)
         entity.level = entity.level + levels
 
         if entity.stats then
-            entity.stats.level = entity.level
+            entity.stats.base.level = entity.level
         end
 
         refresh_requirement(entity)

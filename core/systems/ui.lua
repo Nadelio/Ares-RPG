@@ -355,12 +355,6 @@ local function build_status_rows(player)
         end
     end
 
-    table.insert(compact_entries, {
-        label = "LV",
-        value = tostring(player.level or 1),
-        color = Colors.blue
-    })
-
     for i = 1, #compact_entries, 2 do
         local left = compact_entries[i]
         local right = compact_entries[i + 1]
