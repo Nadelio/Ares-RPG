@@ -59,6 +59,9 @@ local loaded_mods = {}
 -- TODO: Make player and enemy prefabs
 -- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
 
+-- TODO: [BUG] On Linux and MacOS releases, window scale is backwards, solution: "render to an offscreen canvas"
+    --? love.graphics.newCanvas(), love.graphics.setCanvas()
+    --? add render scale setting 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
