@@ -28,13 +28,16 @@ function Logger:next_turn()
 end
 
 function Logger:save(path)
-    local file = assert(io.open(path, "w")) 
+    local file, err = io.open(path, "w")
+    if not file then
+        error("Could not create ".. path .. " : " .. err)
+    else
+        for _, event in ipairs(self.events) do
+            file:write(self:format(event) .. "\n")
+        end
 
-    for _, event in ipairs(self.events) do
-        file:write(self:format(event) .. "\n") 
+        file:close()
     end
-
-    file:close() 
 end
 
 function Logger:format(event)
