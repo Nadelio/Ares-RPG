@@ -12,29 +12,6 @@ local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer")
 local UIRenderer = require("core.render.ui_renderer")
 
-Loader.load_core_content()
-
-local MovementSystem = Registry.resolve("systems", "movement")
-local InputSystem = Registry.resolve("systems", "input")
-local LevelSystem = Registry.resolve("systems", "level")
-local HealthSystem = Registry.resolve("systems", "health")
-local LoggerSystem = Registry.resolve("systems", "logger")
-local InventorySystem = Registry.resolve("systems", "inventory")
-local ClassSystem = Registry.resolve("systems", "class")
-local TurnSystem = Registry.resolve("systems", "turn")
-local PreviewSystem = Registry.resolve("systems", "preview")
-local StatSystem = Registry.resolve("systems", "stats")
-local MapGenerator = Registry.resolve("systems", "map_generator")
-local LootTableSystem = Registry.resolve("systems", "loot_table")
-
-local Position = Registry.resolve("components", "position")
-local Renderable = Registry.resolve("components", "renderable")
-local Stats = Registry.resolve("components", "stats")
-local Inventory = Registry.resolve("components", "inventory")
-local UIState = Registry.resolve("components", "ui_state")
-
-local Chest = Registry.resolve("prefabs", "chest")
-
 local loaded_mods = {}
 
 -- TODO: [WIP] class system
@@ -66,45 +43,10 @@ local loaded_mods = {}
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
-local logger = Logger.new()
-local map = Map.new({})
-local world = World.new()
-local player = world:add({
-    name = "Player",
-    position = Position.new({ x = 2, y = 2 }),
-    renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
-    stats = Stats.new({ class = "human" }),
-    inventory = Inventory.new({}),
-    ui = UIState.new({}),
-
-    level = 1
-})
-
-world.player = player
-
-Events.on("interact", function(e)
-
-    local target = e.target
-    local actor = e.actor
-
-    if not target then
-        return
-    end
-
-    local dx = math.abs(actor.position.x - target.position.x)
-    local dy = math.abs(actor.position.y - target.position.y)
-
-    if dx > 1 or dy > 1 then
-        e.cancelled = true
-        return
-    end
-
-    if target.interactable.interact then
-        target.interactable.interact(target, e)
-    end
-
-end, 100)
-
+local logger
+local map
+local world
+local player
 
 function love.load(arg)
     math.randomseed(os.time(), os.time())
@@ -119,10 +61,75 @@ function love.load(arg)
 
     love.keyboard.setKeyRepeat(false)
 
+    Loader.load_core_content()
+
     if not love.filesystem.getInfo("mods", "directory") then
         love.filesystem.createDirectory("mods")
         print("Mods folder created at: " .. love.filesystem.getSaveDirectory() .. "\\mods")
     end
+
+    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
+    print("Loaded " .. #loaded_mods .. " mods.")
+
+    local MovementSystem = Registry.resolve("systems", "movement")
+    local InputSystem = Registry.resolve("systems", "input")
+    local LevelSystem = Registry.resolve("systems", "level")
+    local HealthSystem = Registry.resolve("systems", "health")
+    local LoggerSystem = Registry.resolve("systems", "logger")
+    local InventorySystem = Registry.resolve("systems", "inventory")
+    local ClassSystem = Registry.resolve("systems", "class")
+    local TurnSystem = Registry.resolve("systems", "turn")
+    local PreviewSystem = Registry.resolve("systems", "preview")
+    local StatSystem = Registry.resolve("systems", "stats")
+    local MapGenerator = Registry.resolve("systems", "map_generator")
+    local LootTableSystem = Registry.resolve("systems", "loot_table")
+
+    local Position = Registry.resolve("components", "position")
+    local Renderable = Registry.resolve("components", "renderable")
+    local Stats = Registry.resolve("components", "stats")
+    local Inventory = Registry.resolve("components", "inventory")
+    local UIState = Registry.resolve("components", "ui_state")
+
+    local Chest = Registry.resolve("prefabs", "chest")
+
+    logger = Logger.new()
+    map = Map.new({})
+    world = World.new()
+    player = world:add({
+        name = "Player",
+        position = Position.new({ x = 2, y = 2 }),
+        renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
+        stats = Stats.new({ class = "human" }),
+        inventory = Inventory.new({}),
+        ui = UIState.new({}),
+
+        level = 1
+    })
+
+    world.player = player
+
+    Events.on("interact", function(e)
+
+        local target = e.target
+        local actor = e.actor
+
+        if not target then
+            return
+        end
+
+        local dx = math.abs(actor.position.x - target.position.x)
+        local dy = math.abs(actor.position.y - target.position.y)
+
+        if dx > 1 or dy > 1 then
+            e.cancelled = true
+            return
+        end
+
+        if target.interactable.interact then
+            target.interactable.interact(target, e)
+        end
+
+    end, 100)
 
     TurnSystem.init(Events, world, map, logger)
     InputSystem.init(Events, world, map, logger)
@@ -142,9 +149,6 @@ function love.load(arg)
 
     --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single starter item
     ClassSystem.init(Events, world, map, logger)
-
-    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
-    print("Loaded " .. #loaded_mods .. " mods.")
 
     --? Build the map after loading the mods incase a mod changes how map generation works
     Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
@@ -166,8 +170,8 @@ function love.load(arg)
     })
 end
 
-local screen = {} 
-local ui = {} 
+local screen = {}
+local ui = {}
 
 local function build_ui_context()
     return {
