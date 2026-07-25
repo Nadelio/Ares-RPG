@@ -26,7 +26,7 @@ end
 
 function UIRenderer.draw(widgets)
     local function draw_lines(lines, x, y)
-        local fontHeight = love.graphics.getFont():getHeight() + 3
+        local fontHeight = love.graphics.getFont():getHeight()
 
         for i, line in ipairs(lines) do
             local cursorX = x

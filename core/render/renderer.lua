@@ -135,7 +135,7 @@ end
 
 function Renderer.draw(buffer)
     local font = love.graphics.getFont()
-    local lineHeight = font:getHeight() + 3
+    local lineHeight = font:getHeight()
 
     for row, line in ipairs(buffer) do
         local x = 0
