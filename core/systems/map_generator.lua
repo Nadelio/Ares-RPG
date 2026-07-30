@@ -2,9 +2,16 @@ local Registry = require("core.registry")
 
 local MapGenerator = {}
 
-local MIN_LEAF_SIZE = 8
-local ROOM_PADDING  = 1
-local ROOM_MIN_DIM  = 4
+local MIN_LEAF_SIZE = 5
+local ROOM_PADDING  = 0
+local ROOM_MIN_DIM  = 3
+local HORIZONTAL_TOLERANCE = 2.0
+local VERTICAL_TOLERANCE = 2.0
+local DEFAULT_DEPTH = 6
+local DEFAULT_MAP_DIMS = {
+    WIDTH = 60,
+    HEIGHT = 40
+}
 
 local function new_node(x, y, w, h)
     return { x = x, y = y, w = w, h = h, left = nil, right = nil, room = nil }
@@ -14,9 +21,9 @@ local function split(node)
     if node.left or node.right then return false end
 
     local split_horiz
-    if   node.w > node.h and node.w / node.h >= 1.25 then
+    if   node.w > node.h and node.w / node.h >= HORIZONTAL_TOLERANCE then
         split_horiz = false
-    elseif node.h > node.w and node.h / node.w >= 1.25 then
+    elseif node.h > node.w and node.h / node.w >= VERTICAL_TOLERANCE then
         split_horiz = true
     else
         split_horiz = math.random(0, 1) == 1
@@ -27,12 +34,11 @@ local function split(node)
     if max_split < MIN_LEAF_SIZE then return false end
 
     local pos = math.random(MIN_LEAF_SIZE, max_split)
-
     if split_horiz then
-        node.left  = new_node(node.x, node.y,       node.w, pos)
+        node.left  = new_node(node.x, node.y,       node.w, pos + 1)
         node.right = new_node(node.x, node.y + pos, node.w, node.h - pos)
     else
-        node.left  = new_node(node.x,       node.y, pos,          node.h)
+        node.left  = new_node(node.x,       node.y, pos + 1,      node.h)
         node.right = new_node(node.x + pos, node.y, node.w - pos, node.h)
     end
 
@@ -48,21 +54,12 @@ local function split_recursive(node, depth)
 end
 
 local function carve_room(node, tiles)
-    local max_w = node.w - ROOM_PADDING * 2
-    local max_h = node.h - ROOM_PADDING * 2
-    if max_w < ROOM_MIN_DIM or max_h < ROOM_MIN_DIM then return end
+    if node.w < ROOM_MIN_DIM or node.h < ROOM_MIN_DIM then return end
 
-    local rw = math.random(ROOM_MIN_DIM, max_w)
-    local rh = math.random(ROOM_MIN_DIM, max_h)
-    local ox = math.random(0, max_w - rw)
-    local oy = math.random(0, max_h - rh)
-    local rx = node.x + ROOM_PADDING + ox
-    local ry = node.y + ROOM_PADDING + oy
+    node.room = { x = node.x, y = node.y, w = node.w, h = node.h }
 
-    node.room = { x = rx, y = ry, w = rw, h = rh }
-
-    for cy = ry + 1, ry + rh - 2 do
-        for cx = rx + 1, rx + rw - 2 do
+    for cy = node.y + 1, node.y + node.h - 2 do
+        for cx = node.x + 1, node.x + node.w - 2 do
             tiles[cy][cx] = { type = "X" }
         end
     end
@@ -140,10 +137,34 @@ local function find_first_room(node)
         or (node.right and find_first_room(node.right))
 end
 
+local function place_objects(Events, map)
+    local valid_objects = Registry.query("prefabs", function(prefab)
+        if prefab.new({}).position and prefab.new({}).renderable and prefab.new({}).placement_rules then
+            return true
+        end
+        return false
+    end)
+
+    for _, obj in ipairs(valid_objects) do
+        local proto = obj.new({})
+        local obj_rules = proto.placement_rules
+        for y = 1, #map.tiles do
+            for x = 1, #map.tiles[y] do
+                if map.tiles[y][x].type == obj_rules.valid_tile then
+                    if obj_rules.valid_placement(x, y, map) then
+                        map:add_object(obj.new({ x = x, y = y }))
+                    end
+                end
+            end
+        end
+    end
+end
+
 function MapGenerator.init(Events, world, map, logger)
     Events.on("build_map", function(e)
-        local w = (e.dimensions and e.dimensions.w) or 60
-        local h = (e.dimensions and e.dimensions.h) or 40
+        local w = (e.dimensions and e.dimensions.w) or DEFAULT_MAP_DIMS.WIDTH
+        local h = (e.dimensions and e.dimensions.h) or DEFAULT_MAP_DIMS.HEIGHT
+        local max_depth = e.depth or DEFAULT_DEPTH
 
         local tiles = {}
         for y = 1, h do
@@ -154,7 +175,7 @@ function MapGenerator.init(Events, world, map, logger)
         end
 
         local root = new_node(1, 1, w, h)
-        split_recursive(root, 5)
+        split_recursive(root, max_depth)
         carve_rooms(root, tiles)
         connect_nodes(root, tiles)
         logger:add("Generated Map")
@@ -169,8 +190,8 @@ function MapGenerator.init(Events, world, map, logger)
         logger:add("Player Placed")
         map.tiles   = tiles
 
-        -- call placer function here
-        logger:add("Objects and Entities Placed") --! Only generate loot tables whenever a player opens the container for the first time
+        place_objects(Events, map)
+        logger:add("Objects and Entities Placed")
     end, 100)
 end
 

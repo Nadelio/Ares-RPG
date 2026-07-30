@@ -1,10 +1,12 @@
 local Registry = require("core.registry")
+local Events = require("core.events")
 
 local Renderable = require("core.components.renderable")
 local Position   = require("core.components.position")
 local Interactable = require("core.components.interactable")
 local LootTable = require("core.components.loot_table")
 local Object = require("core.components.object")
+local PlacementRules = require("core.components.placement_rules")
 
 local UI = require("core.systems.ui")
 
@@ -19,6 +21,18 @@ local function clamp_chest_slot(player, chest)
     player.ui.chest_selected_slot = math.max(1, math.min(player.ui.chest_selected_slot or 1, max_slot))
 end
 
+local function isWall(map, x, y)
+    if x < 1 or y < 1 then return false end
+
+    local row = map.tiles[y]
+    if not row then return false end
+
+    local tile = row[x]
+    if not tile then return false end
+
+    return tile.type == "W"
+end
+
 function Chest.new(data)
     local obj = Object.new({
         name = "Chest",
@@ -29,6 +43,36 @@ function Chest.new(data)
         renderable = Renderable.new({ glyph = "C" }),
     })
 
+    obj.placement_rules = PlacementRules.new({
+        valid_tile = "X",
+        valid_placement = function(x, y, map)
+            local walls = {
+                TL = isWall(map, x - 1, y - 1),
+                TC = isWall(map, x, y - 1),
+                TR = isWall(map, x + 1, y - 1),
+                ML = isWall(map, x - 1, y),
+                MC = isWall(map, x, y),
+                MR = isWall(map, x + 1, y),
+                BL = isWall(map, x - 1, y + 1),
+                BC = isWall(map, x, y + 1),
+                BR = isWall(map, x + 1, y + 1),
+            }
+            
+            local corners = {
+                TL = walls.TL and walls.TC and walls.ML,
+                TR = walls.TR and walls.TC and walls.MR,
+                BL = walls.BL and walls.BC and walls.ML,
+                BR = walls.BR and walls.BC and walls.MR
+            }
+
+            if corners.TL or corners.TR or corners.BL or corners.BR then
+                if math.random(0, 100) < 10 then
+                    return true
+                end
+            end
+            return false
+        end
+    })
     obj.loot_table = LootTable.new({
         valid_items = {
             CoinItem
@@ -40,6 +84,13 @@ function Chest.new(data)
 
             if not actor or not actor.ui then
                 return
+            end
+
+            if entity.first_open then -- generate loot table on the first time the chest is opened
+                Events.emit("generate_loot_table", {
+                    container = entity
+                })
+                entity.first_open = false
             end
 
             if actor.ui.chest_open and actor.ui.chest_target == entity then
@@ -60,6 +111,7 @@ function Chest.new(data)
             clamp_chest_slot(actor, entity)
         end,
     })
+    obj.first_open = true
 
     return obj 
 end

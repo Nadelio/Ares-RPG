@@ -21,9 +21,7 @@ local loaded_mods = {}
 --? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: [WIP] procedural map generation system
--- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
 -- TODO: larger map support (scrolling map and render only a portion of map)
--- TODO: add back T intersection rendering for walls in TileStyles
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
@@ -152,22 +150,6 @@ function love.load(arg)
 
     --? Build the map after loading the mods incase a mod changes how map generation works
     Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
-    
-    map:add_object(Chest.new({
-        x = player.position.x + 1,
-        y = player.position.y
-    })) -- place a chest to the right of the player
-    Events.emit("generate_loot_table", { -- fill chest with items
-        container = map:get_object(player.position.x + 1, player.position.y),
-    })
-
-    map:add_object(Chest.new({
-        x = player.position.x,
-        y = player.position.y + 1
-    })) -- place a chest below the player
-    Events.emit("generate_loot_table", {
-        container = map:get_object(player.position.x, player.position.y + 1),
-    })
 end
 
 local screen = {}

@@ -1,3 +1,5 @@
+local ConstTable = require("core.utils.const_table")
+
 local TileStyles = {}
 
 local function isWall(map, x, y)
@@ -34,6 +36,25 @@ local function isVisibleWall(map, x, y)
     )
 end
 
+local mask_constants = ConstTable.new({
+    NONE = 0,
+    TOP = 1,
+    RIGHT = 2,
+    TR_CORNER = 3,
+    BOTTOM = 4,
+    TB_LINE = 5,
+    BR_CORNER = 6,
+    RIGHT_INTERSECTION = 7,
+    LEFT = 8,
+    TL_CORNER = 9,
+    RL_LINE = 10,
+    TOP_INTERSECTION = 11,
+    BL_CORNER = 12,
+    LEFT_INTERSECTION = 13,
+    BOTTOM_INTERSECTION = 14,
+    ALL = 15,
+})
+
 local function mask(map, x, y)
     local m = 0
 
@@ -67,21 +88,32 @@ TileStyles.W = function(x, y, map)
 
     local m = mask(map, x, y)
 
-    -- isolated wall
-    if m == 0 then return "█" end
+    -- isolated wall -> treat like pillar
+    if m == mask_constants.NONE then return "●" end
 
     -- straight lines
-    if m == 1 or m == 4 or m == 5 then return "│" end
-    if m == 2 or m == 8 or m == 10 then return "─" end
+    if m == mask_constants.TOP or m == mask_constants.BOTTOM or m == (mask_constants.TOP + mask_constants.BOTTOM) then return "│" end
+    if m == mask_constants.RIGHT or m == mask_constants.LEFT or m == (mask_constants.RIGHT + mask_constants.LEFT) then return "─" end
 
     -- corners
-    if m == 1 + 2 then return "╰" end
-    if m == 1 + 8 then return "╯" end
-    if m == 4 + 2 then return "╭" end
-    if m == 4 + 8 then return "╮" end
+    if m == mask_constants.TR_CORNER then return "╰" end
+    if m == mask_constants.TL_CORNER then return "╯" end
+    if m == mask_constants.BR_CORNER then return "╭" end
+    if m == mask_constants.BL_CORNER then return "╮" end
+
+    if m == mask_constants.RIGHT_INTERSECTION then return "├" end
+    if m == mask_constants.LEFT_INTERSECTION then return "┤" end
+    if m == mask_constants.TOP_INTERSECTION then return "┴" end
+    if m == mask_constants.BOTTOM_INTERSECTION then return "┬" end
+    if m == mask_constants.ALL then return "┼" end
 
     -- thick walls
-    local has_lr = (m == 10 or m == 11 or m == 14 or m == 15)
+    local has_lr = (
+        m == mask_constants.RL_LINE or
+        m == mask_constants.TOP_INTERSECTION or
+        m == mask_constants.BOTTOM_INTERSECTION or
+        m == mask_constants.ALL
+    )
     if has_lr then return "─" end
     return "│"
 end

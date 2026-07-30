@@ -11,7 +11,7 @@ function Events.on(eventType, fn, priority)
     table.insert(Events._listeners[eventType], {
         fn = fn,
         priority = priority,
-        once = false
+        expires = false
     })
 
     table.sort(Events._listeners[eventType], function(a, b)
@@ -31,8 +31,10 @@ function Events.emit(eventType, data)
 
         listener.fn(data)
 
-        if listener.once then
+        if listener.expires and listener.times <= 0 then
             table.remove(listeners, idx)
+        elseif listener.expires and listener.times > 0 then
+            listener.times = listener.times - 1
         end
 
         if data.cancelled then
@@ -52,7 +54,26 @@ function Events.once(eventType, fn, priority)
     table.insert(Events._listeners[eventType], {
         fn = fn,
         priority = priority,
-        once = true
+        expires = true,
+        times = 1
+    })
+
+    table.sort(Events._listeners[eventType], function(a, b)
+        return a.priority > b.priority
+    end)
+end
+
+--- listen to an event `times` times before removing from listeners
+function Events.only(eventType, fn, priority, times)
+    priority = priority or 0
+
+    Events._listeners[eventType] = Events._listeners[eventType] or {}
+
+    table.insert(Events._listeners[eventType], {
+        fn = fn,
+        priority = priority,
+        expires = true,
+        times = times
     })
 
     table.sort(Events._listeners[eventType], function(a, b)
