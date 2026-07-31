@@ -44,17 +44,20 @@ function Chest.new(data)
     })
 
     obj.placement_rules = PlacementRules.new({
-        valid_tile = "X",
         valid_placement = function(x, y, map)
+            if map.tiles[y][x].type ~= "X" then
+                return false
+            end
+
             local walls = {
                 TL = isWall(map, x - 1, y - 1),
-                TC = isWall(map, x, y - 1),
+                TC = isWall(map, x    , y - 1),
                 TR = isWall(map, x + 1, y - 1),
-                ML = isWall(map, x - 1, y),
-                MC = isWall(map, x, y),
-                MR = isWall(map, x + 1, y),
+                ML = isWall(map, x - 1, y    ),
+                MC = isWall(map, x    , y    ),
+                MR = isWall(map, x + 1, y    ),
                 BL = isWall(map, x - 1, y + 1),
-                BC = isWall(map, x, y + 1),
+                BC = isWall(map, x    , y + 1),
                 BR = isWall(map, x + 1, y + 1),
             }
             

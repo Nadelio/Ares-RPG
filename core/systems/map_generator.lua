@@ -3,9 +3,8 @@ local Registry = require("core.registry")
 local MapGenerator = {}
 
 local MIN_LEAF_SIZE = 5
-local ROOM_PADDING  = 0
 local ROOM_MIN_DIM  = 3
-local HORIZONTAL_TOLERANCE = 2.0
+local HORIZONTAL_TOLERANCE = 4.0
 local VERTICAL_TOLERANCE = 2.0
 local DEFAULT_DEPTH = 6
 local DEFAULT_MAP_DIMS = {
@@ -150,10 +149,8 @@ local function place_objects(Events, map)
         local obj_rules = proto.placement_rules
         for y = 1, #map.tiles do
             for x = 1, #map.tiles[y] do
-                if map.tiles[y][x].type == obj_rules.valid_tile then
-                    if obj_rules.valid_placement(x, y, map) then
-                        map:add_object(obj.new({ x = x, y = y }))
-                    end
+                if obj_rules.valid_placement(x, y, map) then
+                    map:add_object(obj.new({ x = x, y = y }))
                 end
             end
         end
