@@ -15,18 +15,16 @@ local UIRenderer = require("core.render.ui_renderer")
 local loaded_mods = {}
 
 -- TODO: [WIP] class system
--- TODO: Add weapon/armor advantage/disadvantage
---? [TEST] enemy advantage/disadvantage
---? [TEST] weapons/armor advantage/disadvantage
---? [TEST] unlocked skills, interactions, spells, etc
-
--- TODO: [WIP] procedural map generation system
--- TODO: larger map support (scrolling map and render only a portion of map)
+    -- TODO: Add weapon/armor advantage/disadvantage
+    --? [TEST] enemy advantage/disadvantage
+    --? [TEST] weapons/armor advantage/disadvantage
+    --? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
--- TODO: loot tables in container-type objects (like chests)
+    --? Need to modify loot tables to bias towards higher rarity items
+    --? Need to mess with the rarity colors stuff and make it part of the Item component as an enum
 
 -- TODO: interaction menu (only available if >1 interaction)
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
@@ -37,6 +35,8 @@ local loaded_mods = {}
 -- TODO: [BUG] On Linux and MacOS releases, window scale is backwards, solution: "render to an offscreen canvas"
     --? love.graphics.newCanvas(), love.graphics.setCanvas()
     --? add render scale setting 
+-- TODO: larger map support (scrolling map and render only a portion of map)
+
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
