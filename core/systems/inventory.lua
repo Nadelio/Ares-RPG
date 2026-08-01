@@ -1,13 +1,10 @@
 local Registry = require("core.registry")
-local StatSystem = require("core.systems.stats")
-local Object = require("core.components.object")
-local Interactable = require("core.components.interactable")
-local Position = require("core.components.position")
-local Inventory = require("core.components.inventory")
+
 
 local InventorySystem = {}
 
 local function ensure_inventory(entity)
+    local Inventory = Registry.resolve("components", "inventory")
     entity.inventory = entity.inventory or Inventory.new()
     entity.inventory.items = entity.inventory.items or {}
 
@@ -36,7 +33,11 @@ local function clamp_selected_slot(entity)
 end
 
 function InventorySystem.init(Events, world, map, logger)
-
+    local Position = Registry.resolve("components", "position")
+    local Interactable = Registry.resolve("components", "interactable")
+    local Object = Registry.resolve("components", "object")
+    local StatSystem = Registry.resolve("systems", "stats")
+    
     Events.on("inventory_add", function(e)
         local entity = e.entity
         local item = e.item

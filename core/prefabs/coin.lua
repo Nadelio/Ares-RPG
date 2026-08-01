@@ -1,13 +1,11 @@
 local Registry = require("core.registry")
 
-local Item = require("core.components.item")
-local Renderable = require("core.components.renderable")
-local RarityColors = require("core.render.raritycolors")
-local Colors = require("core.render.colors")
 
 local Coin = {}
 
 function Coin.new(data)
+    local Item = Registry.resolve("components", "item")
+    local Renderable = Registry.resolve("components", "renderable")
     local c = Item.new({
         name = "Coin",
         description = "A gold coin",

@@ -81,14 +81,13 @@ function love.load(arg)
     local StatSystem = Registry.resolve("systems", "stats")
     local MapGenerator = Registry.resolve("systems", "map_generator")
     local LootTableSystem = Registry.resolve("systems", "loot_table")
+    local BrainSystem = Registry.resolve("systems", "brain")
 
     local Position = Registry.resolve("components", "position")
     local Renderable = Registry.resolve("components", "renderable")
     local Stats = Registry.resolve("components", "stats")
     local Inventory = Registry.resolve("components", "inventory")
     local UIState = Registry.resolve("components", "ui_state")
-
-    local Chest = Registry.resolve("prefabs", "chest")
 
     logger = Logger.new()
     map = Map.new({})
@@ -139,6 +138,7 @@ function love.load(arg)
     InventorySystem.init(Events, world, map, logger)
     MapGenerator.init(Events, world, map, logger)
     LootTableSystem.init(Events, world, map, logger)
+    BrainSystem.init(Events, world, map, logger)
 
     --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
     player.inventory.equipped = true

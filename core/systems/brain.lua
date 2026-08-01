@@ -1,9 +1,9 @@
-local Registry     = require("core.registry")
-local MovementRules = require("core.systems.move_rules")
+local Registry = require("core.registry")
 
 local BrainSystem = {}
 
 local function astar(sx, sy, gx, gy, map, tile_scores, max_dist)
+    local MovementRules = Registry.resolve("systems", "move_rules")
     if sx == gx and sy == gy then return {} end
 
     local function h(x, y)
@@ -152,6 +152,7 @@ local function goal_chase(entity, brain, world, map, Events)
 end
 
 local function goal_wander(entity, brain, world, map, Events)
+    local MovementRules = Registry.resolve("systems", "move_rules")
     local dirs = { {0,-1}, {0,1}, {-1,0}, {1,0} }
     for i = #dirs, 2, -1 do  -- Fisher-Yates shuffle
         local j = math.random(i)
@@ -184,6 +185,10 @@ local function run_brain(entity, world, map, Events)
     for _, goal in ipairs(sorted) do
         local fn = goal.run or BUILTIN_GOALS[goal.type]
         if fn and fn(entity, brain, world, map, Events) then
+            Events.emit("goal_achieved", {
+                entity = entity,
+                goal = goal
+            })
             break
         end
     end
@@ -195,7 +200,8 @@ function BrainSystem.init(Events, world, map, logger)
             return entity.brain
                 and entity.position
                 and entity ~= world.player
-                and not entity.dead
+                and entity.stats
+                and entity.stats.current_state ~= 0 --? 0 == EntityStates.DEAD
         end)
         for _, entity in ipairs(npcs) do
             run_brain(entity, world, map, Events)

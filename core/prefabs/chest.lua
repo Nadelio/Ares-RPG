@@ -1,16 +1,7 @@
 local Registry = require("core.registry")
 local Events = require("core.events")
 
-local Renderable = require("core.components.renderable")
-local Position   = require("core.components.position")
-local Interactable = require("core.components.interactable")
-local LootTable = require("core.components.loot_table")
-local Object = require("core.components.object")
-local PlacementRules = require("core.components.placement_rules")
-
 local UI = require("core.systems.ui")
-
-local CoinItem = require("core.prefabs.coin")
 
 local Chest = {}
 
@@ -34,6 +25,15 @@ local function isWall(map, x, y)
 end
 
 function Chest.new(data)
+    local Renderable = Registry.resolve("components", "renderable")
+    local Position   = Registry.resolve("components", "position")
+    local Interactable = Registry.resolve("components", "interactable")
+    local LootTable = Registry.resolve("components", "loot_table")
+    local Object = Registry.resolve("components", "object")
+    local PlacementRules = Registry.resolve("components", "placement_rules")
+
+    local CoinItem = Registry.resolve("prefabs", "coin")
+
     local obj = Object.new({
         name = "Chest",
         type = "container",

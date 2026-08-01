@@ -1,9 +1,8 @@
 local Registry = require("core.registry")
-local Stats = require("core.components.stats")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
-local StatSystem = require("core.systems.stats")
-local ClassSystem = require("core.systems.class")
+
+
 local UI = {}
 
 UI.widgets = {}
@@ -49,6 +48,7 @@ local function title_case(text)
 end
 
 local function get_stat_definition(stat)
+    local Stats = Registry.resolve("components", "stats")
     return Stats.get_definition(stat) or {
         key = stat,
         label = title_case(stat)
@@ -278,6 +278,7 @@ function UI.below(widgets, id, spacing)
 end
 
 local function get_ordered_bonus_keys(bonuses)
+    local Stats = Registry.resolve("components", "stats")
     local ordered = {}
     local seen = {}
 
@@ -325,6 +326,8 @@ local function selected_inventory_item(player)
 end
 
 local function build_status_rows(player)
+    local StatSystem = Registry.resolve("systems", "stats")
+    local Stats = Registry.resolve("components", "stats")
     local rows = {}
     local compact_entries = {}
     table.insert(rows, {
@@ -456,6 +459,7 @@ local function find_level_up_tab(player, tabs)
 end
 
 local function append_level_up_detail_rows(rows, entry, player)
+    local StatSystem = Registry.resolve("systems", "stats")
     if not entry then
         return
     end
@@ -519,6 +523,7 @@ local function append_level_up_detail_rows(rows, entry, player)
 end
 
 local function build_level_up_rows(player)
+    local ClassSystem = Registry.resolve("systems", "class")
     local rows = {}
     local tabs = ClassSystem.get_level_up_choices(player) or {}
     local active_tab = find_level_up_tab(player, tabs)

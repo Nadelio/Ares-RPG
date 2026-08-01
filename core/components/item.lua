@@ -1,8 +1,8 @@
 local Registry = require("core.registry")
-local Renderable = require("core.components.renderable")
 local Item = {}
 
 function Item.new(data)
+    local Renderable = Registry.resolve("components", "renderable")
     local italics = false
     if data.rarity then
         if data.rarity == "cursed" then

@@ -2,10 +2,6 @@ local Registry = require("core.registry")
 
 local TableUtils = require("core.utils.table_utils")
 
-local Item = require("core.components.item")
-local Stats = require("core.components.stats")
-local StatSystem = require("core.systems.stats")
-
 local ClassSystem = {}
 
 local LEVELABLE_STATS = {
@@ -40,12 +36,15 @@ local function normalize_class_id(class_id)
 end
 
 local function reset_base_stats(stats)
+	local StatSystem = Registry.resolve("systems", "stats")
+	local Stats = Registry.resolve("components", "stats")
 	for _, definition in ipairs(Stats.definitions) do
 		StatSystem.setBase(stats, definition.key, 0)
 	end
 end
 
 local function adjust_tracked_current(entity, stat, amount)
+	local StatSystem = Registry.resolve("systems", "stats")
 	if stat ~= "health" and stat ~= "movement" then
 		return
 	end
@@ -57,6 +56,7 @@ local function adjust_tracked_current(entity, stat, amount)
 end
 
 local function apply_base_changes(entity, deltas)
+	local StatSystem = Registry.resolve("systems", "stats")
 	for stat, amount in pairs(deltas or {}) do
 		StatSystem.modifyBase(entity.stats, stat, amount)
 		adjust_tracked_current(entity, stat, amount)
@@ -310,6 +310,8 @@ function ClassSystem.refresh_progression(entity)
 end
 
 function ClassSystem.assign(entity, class_id, Events)
+	local StatSystem = Registry.resolve("systems", "stats")
+	local Item = Registry.resolve("components", "item")
 	assert(entity and entity.stats, "Cannot assign a class to an entity without stats")
 
 	local definition, resolved_id = ClassSystem.get_definition(class_id or entity.class_id or entity.stats.class)
@@ -388,6 +390,8 @@ function ClassSystem.get_level_up_options(entity)
 end
 
 function ClassSystem.get_level_up_choices(entity)
+	
+	local Stats = Registry.resolve("components", "stats")
 	local options = ClassSystem.get_level_up_options(entity)
 
 	if not options then

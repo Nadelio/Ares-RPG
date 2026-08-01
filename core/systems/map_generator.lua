@@ -136,7 +136,7 @@ local function find_first_room(node)
         or (node.right and find_first_room(node.right))
 end
 
-local function place_objects(Events, map)
+local function place_objects(world, map)
     local valid_objects = Registry.query("prefabs", function(prefab)
         if prefab.new({}).position and prefab.new({}).renderable and prefab.new({}).placement_rules then
             return true
@@ -150,7 +150,11 @@ local function place_objects(Events, map)
         for y = 1, #map.tiles do
             for x = 1, #map.tiles[y] do
                 if obj_rules.valid_placement(x, y, map) then
-                    map:add_object(obj.new({ x = x, y = y }))
+                    if proto.dynamic then
+                        world:add(obj.new({ x = x, y = y }))
+                    else
+                        map:add_object(obj.new({ x = x, y = y }))
+                    end
                 end
             end
         end
@@ -187,7 +191,7 @@ function MapGenerator.init(Events, world, map, logger)
         logger:add("Player Placed")
         map.tiles   = tiles
 
-        place_objects(Events, map)
+        place_objects(world, map)
         logger:add("Objects and Entities Placed")
     end, 100)
 end

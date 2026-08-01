@@ -3,7 +3,8 @@ local Registry = require("core.registry")
 local Stats = {}
 
 local EntityStates = {
-    DEAD = 0
+    DEAD = 0,
+    ALIVE = 1,
 }
 
 Stats.definitions = {
@@ -42,11 +43,12 @@ function Stats.new(data)
 
         bonuses = {},
 
-        current_state = EntityStates.DEAD,
+        current_state = EntityStates.ALIVE,
 
         current = {
             health = data.health or 0,
-            capacity = data.capacity or 0
+            capacity = data.capacity or 0,
+            movement = data.movement or 0
         },
 
         equipped_items = {},

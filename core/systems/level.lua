@@ -1,5 +1,4 @@
 local Registry = require("core.registry")
-local ClassSystem = require("core.systems.class")
 
 local LevelSystem = {} 
 
@@ -76,6 +75,8 @@ local function refresh_requirement(entity)
 end
 
 local function calculate_kill_experience(entity, target)
+    local ClassSystem = Registry.resolve("systems", "class")
+    
     local amount = LevelSystem.rewards.kill
     local enemy_tags = collect_enemy_tags(target)
     local has_advantage = false

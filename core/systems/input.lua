@@ -1,7 +1,4 @@
 local Registry = require("core.registry")
-local TurnBuffer = require("core.systems.turn_buffer")
-local StatSystem = require("core.systems.stats")
-local ClassSystem = require("core.systems.class")
 
 local InputSystem = {}
 
@@ -23,10 +20,12 @@ local function clamp_inventory_slots(player)
 end
 
 local function get_level_up_tabs(player)
+    local ClassSystem = Registry.resolve("systems", "class")
     return ClassSystem.get_level_up_choices(player) or {}
 end
 
 local function has_pending_level_up_choices(player)
+    local ClassSystem = Registry.resolve("systems", "class")
     local tabs = ClassSystem.get_level_up_choices(player) or {}
 
     for _, tab in ipairs(tabs) do
@@ -219,7 +218,8 @@ local function close_chest_ui(player, keep_inventory_open)
     player.ui.inventory_open_before_chest = false
 end
 
-local function transfer_to_player(player, chest)
+local function transfer_to_player(player, chest)    
+    local StatSystem = Registry.resolve("systems", "stats")
     local items = chest.loot_table.inventory.items or {}
     local index = clamp_slot(player.ui.chest_selected_slot, #items)
     local item = items[index]
@@ -268,6 +268,7 @@ local function transfer_to_chest(player, chest, Events, map)
 end
 
 function InputSystem.init(Events, world, map, logger)
+    local TurnBuffer = Registry.resolve("systems", "turn_buffer")
     Events.on("level_up", function(e)
         local player = e.entity
 

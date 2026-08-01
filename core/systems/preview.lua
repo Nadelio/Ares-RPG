@@ -1,9 +1,9 @@
 local Registry = require("core.registry")
-local GhostSim = require("core.systems.ghost_sim")
 
 local PreviewSystem = {} 
 
 function PreviewSystem.init(Events, world, map, logger)
+    local GhostSim = Registry.resolve("systems", "ghost_sim")
 
     Events.on("preview_request", function(e)
 

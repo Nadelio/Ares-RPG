@@ -1,9 +1,9 @@
 local Registry = require("core.registry")
-local MovementRules = require("core.systems.move_rules")
-local GhostWorld = require("core.systems.ghost_world")
 local GhostSim = {}
 
 function GhostSim.run(world, map, actions)
+    local MovementRules = Registry.resolve("systems", "move_rules")
+    local GhostWorld = Registry.resolve("systems", "ghost_world")
 
     local ghost = GhostWorld.new(world)
 

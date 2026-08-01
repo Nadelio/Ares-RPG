@@ -1,8 +1,8 @@
 local Registry = require("core.registry")
 
-local Object = {}
+local DynamicObject = {}
 
-function Object.new(data)
+function DynamicObject.new(data)
     local Renderable = Registry.resolve("components", "renderable")
     local Position   = Registry.resolve("components", "position")
     return {
@@ -11,11 +11,12 @@ function Object.new(data)
 
         collides = data.collides or false,
         position = data.position or Position.new({ x = 0, y = 0 }),
+        dynamic = true,
 
         renderable = data.renderable or Renderable.new({ glyph = "?" })
     }
 end
 
-Registry.register("components", "object", Object)
+Registry.register("components", "dynamic_object", DynamicObject)
 
-return Object
+return DynamicObject
