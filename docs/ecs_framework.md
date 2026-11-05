@@ -17,6 +17,37 @@ Everything is shared through the *Registry*, and every entity lives in the *Worl
 
 A component is a table returned by a `new(data)` constructor. It holds data and nothing else. Components never call events, never read from other components, and never contain game logic.
 
+Behavior references stored by a component must also remain data-only. For example, items use declarative
+trigger descriptors rather than Lua callbacks:
+
+```lua
+local poisoned_blade = Item.new({
+    name = "Poisoned Blade",
+    triggers = {
+        on_hit = {
+            {
+                event = "status_apply",
+                data = {
+                    effect = {
+                        id = "poison",
+                        duration = 3,
+                    },
+                },
+                bindings = {
+                    source = "owner",
+                    target = "target",
+                },
+            },
+        },
+    },
+})
+```
+
+`ItemEffectSystem` interprets these descriptors and emits their events. Effect-specific systems subscribe
+to events such as `status_applied`, `status_turn`, and `status_removed`; the item and status components
+never store or execute functions. Item and status constructors reject nested functions, threads, userdata,
+and cyclic references in these declarative fields so violations fail immediately.
+
 `core.components.position` - where an entity is on the map:
 ```lua
 function Position.new(data)

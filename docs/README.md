@@ -70,6 +70,7 @@ For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md), [
 - [Extending Existing Content](./extending_content.md)
 - [Working With `core` Content](./integrating_with_core.md)
     - [Custom Items](./core/custom_items.md)
+    - [Custom Status Effects](./core/custom_status_effects.md)
     - [Custom Stats](./core/custom_stats.md)
     - [Custom Rarities](./core/custom_rarities.md)
     - [Custom Classes](./core/custom_classes.md)
@@ -91,4 +92,3 @@ For further reading, navigate to the [Ares ECS Framework](./ecs_framework.md), [
 - [Components Reference](./references/components.md)
 - [Systems Reference](./references/systems.md)
 - [Prefabs Reference](./references/prefabs.md)
-
