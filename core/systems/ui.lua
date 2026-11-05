@@ -378,6 +378,38 @@ local function build_status_rows(player)
     return rows
 end
 
+local function build_interaction_rows(player)
+    local rows = {}
+    local options = player.ui.interaction_options or {}
+    local selected_index = player.ui.interaction_selected_index or 1
+
+    for index, option in ipairs(options) do
+        local selected = index == selected_index
+
+        table.insert(rows, {
+            { text = selected and "> " or "  ", color = Colors.reset },
+            { text = option.label, color = selected and Colors.yellow or Colors.reset },
+        })
+
+        if selected and option.description then
+            for _, line in ipairs(wrap_text(option.description, 34)) do
+                table.insert(rows, {
+                    { text = "    " .. line, color = Colors.gray },
+                })
+            end
+        end
+    end
+
+    table.insert(rows, {
+        { text = " UP/DOWN select  E/ENTER choose", color = Colors.gray },
+    })
+    table.insert(rows, {
+        { text = " ESC close", color = Colors.gray },
+    })
+
+    return rows
+end
+
 local function build_item_detail_rows(item)
     if not item then
         return {
@@ -1068,6 +1100,33 @@ UI.register("level_up", {
     end,
 })
 
+UI.register("interaction", {
+    order = 110,
+    position = function(_, widget)
+        local screen_width, screen_height = get_screen_size()
+        local size = measure_widget(widget)
+
+        return math.floor((screen_width - size.width) / 2), math.floor((screen_height - size.height) / 2)
+    end,
+    visible = function(context)
+        local player = context.player
+
+        return player
+            and player.ui
+            and player.ui.interaction_open
+    end,
+    build = function(context)
+        local player = context.player
+        local target = player.ui.interaction_target
+        local rows = build_interaction_rows(player)
+        local title = target and target.name or "Interact"
+
+        return UI.box(title, 40, math.max(#rows + 2, 8), rows, {
+            background = { 0, 0, 0, 0.9 }
+        })
+    end,
+})
+
 UI.register("controls", {
     order = 30,
     position = function(_, widget, widgets)
@@ -1080,7 +1139,19 @@ UI.register("controls", {
         local player = context.player
         local content
 
-        if player and player.ui and player.ui.level_up_open then
+        if player and player.ui and player.ui.interaction_open then
+            content = {
+                {
+                    { text = " UP/DOWN   select", color = Colors.reset }
+                },
+                {
+                    { text = " E/ENTER   choose", color = Colors.reset }
+                },
+                {
+                    { text = " ESC       close", color = Colors.reset }
+                },
+            }
+        elseif player and player.ui and player.ui.level_up_open then
             content = {
                 {
                     { text = " LEFT/RIGHT tab", color = Colors.reset }

@@ -36,6 +36,7 @@ function InventorySystem.init(Events, world, map, logger)
     local Position = Registry.resolve("components", "position")
     local Interactable = Registry.resolve("components", "interactable")
     local Object = Registry.resolve("components", "object")
+    local ItemEffectSystem = Registry.resolve("systems", "item_effects")
     local StatSystem = Registry.resolve("systems", "stats")
     
     Events.on("inventory_add", function(e)
@@ -51,6 +52,7 @@ function InventorySystem.init(Events, world, map, logger)
         end
         
         table.insert(inventory.items, item)
+        item.owner_id = entity.id
         entity.stats.current.capacity = entity.stats.current.capacity + item.size
         clamp_selected_slot(entity)
 
@@ -78,6 +80,7 @@ function InventorySystem.init(Events, world, map, logger)
 
         table.remove(inventory.items, index)
 
+        item.owner_id = nil
         entity.stats.current.capacity = entity.stats.current.capacity - item.size
         e.item = item
         clamp_selected_slot(entity)
@@ -91,6 +94,19 @@ function InventorySystem.init(Events, world, map, logger)
         local map = e.map
         local inventory = ensure_inventory(entity)
 
+        local trigger_result = ItemEffectSystem.trigger(Events, item, "on_interact", {
+            item = item,
+            owner = entity,
+            actor = entity,
+            target = item_obj,
+            event = e,
+        })
+
+        if trigger_result and trigger_result.cancelled then
+            e.cancelled = true
+            return
+        end
+
         if entity.stats.current.capacity + item.size > StatSystem.get(entity.stats, "capacity") then
             Events.emit("inventory_drop", {
                 entity = entity,
@@ -100,6 +116,7 @@ function InventorySystem.init(Events, world, map, logger)
         end
         
         item.dropped = false
+        item.owner_id = entity.id
         table.insert(inventory.items, item)
         entity.stats.current.capacity = entity.stats.current.capacity + item.size
         clamp_selected_slot(entity)
@@ -133,6 +150,7 @@ function InventorySystem.init(Events, world, map, logger)
         clamp_selected_slot(entity)
 
         item.dropped = true
+        item.owner_id = nil
         if map then
             local item_obj = Object.new({
                 name = item.name,
@@ -172,7 +190,13 @@ function InventorySystem.init(Events, world, map, logger)
 
         StatSystem.equip(entity.stats, item)
 
-        table.insert(entity.stats.equipped_items, item)    
+        table.insert(entity.stats.equipped_items, item)
+        ItemEffectSystem.trigger(Events, item, "on_equip", {
+            item = item,
+            owner = entity,
+            entity = entity,
+            event = e,
+        })
     end, 100)
 
     Events.on("inventory_unequip", function(e)
@@ -198,7 +222,14 @@ function InventorySystem.init(Events, world, map, logger)
                 table.remove(entity.stats.equipped_items, i)
                 break
             end
-        end    
+        end
+
+        ItemEffectSystem.trigger(Events, item, "on_unequip", {
+            item = item,
+            owner = entity,
+            entity = entity,
+            event = e,
+        })
     end, 100)
 
 end

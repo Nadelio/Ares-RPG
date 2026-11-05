@@ -166,7 +166,7 @@ function LevelSystem.init(Events, world, map, logger)
     end, -50)
 
     Events.on("interact", function(e)
-        if e.cancelled or not e.actor then
+        if e.cancelled or e.pending or not e.actor then
             return
         end
 

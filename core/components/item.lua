@@ -1,7 +1,11 @@
 local Registry = require("core.registry")
+local TableUtils = require("core.utils.table_utils")
 local Item = {}
 
 function Item.new(data)
+    data = data or {}
+    TableUtils.assert_data_only(data.triggers or {}, "item.triggers")
+
     local Renderable = Registry.resolve("components", "renderable")
     local italics = false
     if data.rarity then
@@ -23,12 +27,13 @@ function Item.new(data)
 
         equipped = false,
         dropped = false,
+        owner_id = data.owner_id,
+
+        triggers = data.triggers or {},
 
         renderable = data.renderable or Renderable.new({ glyph = "?",  italics = italics })
     }
 end
-
-
 
 Registry.register("components", "item", Item)
 

@@ -65,7 +65,8 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
                     bg = entity.renderable.bg,
                     italics = entity.renderable.italics,
                     bold = entity.renderable.bold,
-                    underline = entity.renderable.underline
+                    underline = entity.renderable.underline,
+                    invert = entity.interaction_selected
                 }
 
             elseif ghost_map[key] then

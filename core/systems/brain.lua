@@ -125,7 +125,6 @@ local function goal_attack_adjacent(entity, brain, world, map, Events)
                 Events.emit("attack", {
                     attacker = entity,
                     target   = target,
-                    damage   = entity.stats and entity.stats.base.attack or 1,
                 })
                 return true
             end

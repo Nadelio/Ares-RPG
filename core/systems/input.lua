@@ -81,6 +81,56 @@ local function close_level_up_ui(player)
     player.ui.level_up_selected_index = 1
 end
 
+local function close_interaction_ui(player)
+    player.ui.interaction_open = false
+    player.ui.interaction_target = nil
+    player.ui.interaction_event = nil
+    player.ui.interaction_options = {}
+    player.ui.interaction_selected_index = 1
+end
+
+local function handle_interaction_input(player, key, Events)
+    local options = player.ui.interaction_options or {}
+
+    if key == "up" then
+        player.ui.interaction_selected_index = clamp_slot(player.ui.interaction_selected_index - 1, #options)
+    elseif key == "down" then
+        player.ui.interaction_selected_index = clamp_slot(player.ui.interaction_selected_index + 1, #options)
+    elseif key == "escape" or key == "q" then
+        local target = player.ui.interaction_target
+        close_interaction_ui(player)
+        Events.emit("interaction_resolved", {
+            actor = player,
+            target = target,
+            cancelled = true,
+        })
+    elseif key == "e" or key == "return" then
+        local choice = options[player.ui.interaction_selected_index]
+
+        if not choice then
+            local target = player.ui.interaction_target
+            close_interaction_ui(player)
+            Events.emit("interaction_resolved", {
+                actor = player,
+                target = target,
+                cancelled = true,
+            })
+            return
+        end
+
+        local target = player.ui.interaction_target
+        local event = player.ui.interaction_event
+
+        close_interaction_ui(player)
+        choice.action(target, event)
+        Events.emit("interaction_resolved", {
+            actor = player,
+            target = target,
+            interaction = choice,
+        })
+    end
+end
+
 local function open_level_up_ui(player)
     if not player or not player.ui then
         return false
@@ -236,6 +286,7 @@ local function transfer_to_player(player, chest)
     table.insert(player.inventory.items, item)
 
     item.dropped = false
+    item.owner_id = player.id
     player.stats.current.capacity = player.stats.current.capacity + item.size
 
     return true
@@ -262,12 +313,14 @@ local function transfer_to_chest(player, chest, Events, map)
     table.remove(items, index)
     table.insert(chest.loot_table.inventory.items, item)
 
+    item.owner_id = nil
     player.stats.current.capacity = player.stats.current.capacity - item.size
 
     return true
 end
 
 function InputSystem.init(Events, world, map, logger)
+    local InteractionSystem = Registry.resolve("systems", "interaction")
     local TurnBuffer = Registry.resolve("systems", "turn_buffer")
     Events.on("level_up", function(e)
         local player = e.entity
@@ -285,6 +338,15 @@ function InputSystem.init(Events, world, map, logger)
         local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.loot_table and player.ui.chest_target.loot_table.inventory
 
         player.turn_buffer = player.turn_buffer or TurnBuffer.new()
+
+        if player.ui.interaction_open then
+            handle_interaction_input(player, key, Events)
+            Events.emit("preview_request", {
+                entity = player,
+                buffer = player.turn_buffer:all()
+            })
+            return
+        end
 
         if player.ui.level_up_open then
             handle_level_up_input(player, key, Events)
@@ -411,11 +473,18 @@ function InputSystem.init(Events, world, map, logger)
                     })
                 end
             else
-                map:clear_selection() 
-    
-                local interactable = map:get_adjacent_interactable(player.position.x, player.position.y, player.ui.selected_tile.x, player.ui.selected_tile.y)
-                if interactable then
-                    interactable.interactable.selected = true
+                InteractionSystem.clear_selection(world, map)
+
+                local target = InteractionSystem.get_target(world, map, player, player.ui.selected_tile)
+                local interaction_event = {
+                    actor = player,
+                    target = target,
+                    map = map,
+                    events = Events,
+                }
+
+                if target and InteractionSystem.can_interact(target, interaction_event) then
+                    InteractionSystem.select(target)
                     player.turn_buffer:add({
                         type = "interact",
                         tile = { x = player.ui.selected_tile.x, y = player.ui.selected_tile.y }
@@ -447,7 +516,7 @@ function InputSystem.init(Events, world, map, logger)
             })
 
             player.turn_buffer:clear()
-            map:clear_selection()
+            InteractionSystem.clear_selection(world, map)
 
         end
 
@@ -455,7 +524,7 @@ function InputSystem.init(Events, world, map, logger)
 
         if key == "ctrl+z" then
             player.turn_buffer:clear()
-            map:clear_selection()
+            InteractionSystem.clear_selection(world, map)
         end
 
         Events.emit("preview_request", {

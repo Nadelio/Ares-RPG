@@ -20,13 +20,22 @@ local loaded_mods = {}
     --? [TEST] weapons/armor advantage/disadvantage
     --? [TEST] unlocked skills, interactions, spells, etc
 
--- TODO: combat system and enemies
+-- TODO: combat system enhancements and enemies
+    --? Add weapon/armor advantage/disadvantage to combat resolution
+    --? Add interaction and combat radius highlights
+    --? Add concrete status effects and items that apply them
+
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
     --? Need to modify loot tables to bias towards higher rarity items
     --? Need to mess with the rarity colors stuff and make it part of the Item component as an enum
 
 -- TODO: interaction menu (only available if >1 interaction)
+    --? Whenever you interact with an entity with an interactable component,
+    --?   check all valid interactions,
+    --?   then display the interaction menu with those options,
+    --?   finally focus the menu
+    --? Up/Down arrows to move between options, esc to close interaction menu
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: Make player and enemy prefabs
@@ -82,6 +91,9 @@ function love.load(arg)
     local MapGenerator = Registry.resolve("systems", "map_generator")
     local LootTableSystem = Registry.resolve("systems", "loot_table")
     local BrainSystem = Registry.resolve("systems", "brain")
+    local CombatSystem = Registry.resolve("systems", "combat")
+    local InteractionSystem = Registry.resolve("systems", "interaction")
+    local StatusSystem = Registry.resolve("systems", "status")
 
     local Position = Registry.resolve("components", "position")
     local Renderable = Registry.resolve("components", "renderable")
@@ -122,9 +134,26 @@ function love.load(arg)
             return
         end
 
-        if target.interactable.interact then
-            target.interactable.interact(target, e)
+        e.events = Events
+
+        local interactions = InteractionSystem.get_valid_interactions(target, e)
+
+        if #interactions == 0 then
+            e.cancelled = true
+            return
         end
+
+        if #interactions > 1 and actor.ui then
+            actor.ui.interaction_open = true
+            actor.ui.interaction_target = target
+            actor.ui.interaction_event = e
+            actor.ui.interaction_options = interactions
+            actor.ui.interaction_selected_index = 1
+            e.pending = true
+            return
+        end
+
+        interactions[1].action(target, e)
 
     end, 100)
 
@@ -132,7 +161,9 @@ function love.load(arg)
     InputSystem.init(Events, world, map, logger)
     PreviewSystem.init(Events, world, map, logger)
     MovementSystem.init(Events, world, map, logger)
+    CombatSystem.init(Events, world, map, logger)
     HealthSystem.init(Events, world, map, logger)
+    StatusSystem.init(Events, world, map, logger)
     LevelSystem.init(Events, world, map, logger)
     LoggerSystem.init(Events, world, map, logger)
     InventorySystem.init(Events, world, map, logger)
