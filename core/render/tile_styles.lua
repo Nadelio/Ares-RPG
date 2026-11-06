@@ -1,6 +1,27 @@
 local ConstTable = require("core.utils.const_table")
+local Renderable = require("core.components.renderable")
 
 local TileStyles = {}
+
+-- Atlas coordinates can be configured independently for each wall shape.
+local wall_styles = {
+    [" "] = Renderable.new({ glyph = " ", sprite = { x = 1, y = 1 } }),
+    ["●"] = Renderable.new({ glyph = "●", sprite = { x = 1, y = 1 } }),
+    ["│"] = Renderable.new({ glyph = "│", sprite = { x = 1, y = 1 } }),
+    ["─"] = Renderable.new({ glyph = "─", sprite = { x = 1, y = 1 } }),
+    ["╭"] = Renderable.new({ glyph = "╭", sprite = { x = 1, y = 1 } }),
+    ["╮"] = Renderable.new({ glyph = "╮", sprite = { x = 1, y = 1 } }),
+    ["╰"] = Renderable.new({ glyph = "╰", sprite = { x = 1, y = 1 } }),
+    ["╯"] = Renderable.new({ glyph = "╯", sprite = { x = 1, y = 1 } }),
+    ["├"] = Renderable.new({ glyph = "├", sprite = { x = 1, y = 1 } }),
+    ["┤"] = Renderable.new({ glyph = "┤", sprite = { x = 1, y = 1 } }),
+    ["┴"] = Renderable.new({ glyph = "┴", sprite = { x = 1, y = 1 } }),
+    ["┬"] = Renderable.new({ glyph = "┬", sprite = { x = 1, y = 1 } }),
+    ["┼"] = Renderable.new({ glyph = "┼", sprite = { x = 1, y = 1 } }),
+}
+
+local floor_style = Renderable.new({ glyph = " ", sprite = { x = 0, y = 1 } })
+local corridor_style = Renderable.new({ glyph = " ", sprite = { x = 0, y = 1 } })
 
 local function isWall(map, x, y)
     if x < 1 or y < 1 then return false end
@@ -66,7 +87,7 @@ local function mask(map, x, y)
     return m
 end
 
-TileStyles.W = function(x, y, map)
+local function wall_glyph(x, y, map)
     if not isVisibleWall(map, x, y) then return " " end
 
     local non_wall_count = 0
@@ -118,12 +139,16 @@ TileStyles.W = function(x, y, map)
     return "│"
 end
 
+TileStyles.W = function(x, y, map)
+    return wall_styles[wall_glyph(x, y, map)]
+end
+
 TileStyles.X = function()
-    return " "
+    return floor_style
 end
 
 TileStyles.C = function()
-    return " "
+    return corridor_style
 end
 
 return TileStyles

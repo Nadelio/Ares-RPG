@@ -40,7 +40,13 @@ function Chest.new(data)
         collides = true,
         position = Position.new({ x = (data.x or 0), y = (data.y or 0) }),
 
-        renderable = Renderable.new({ glyph = "C" }),
+        renderable = Renderable.new({
+            glyph = "C",
+            sprite = {
+                x = 2, y = 0,
+                resolution = 16
+            }
+        }),
     })
 
     obj.placement_rules = PlacementRules.new({

@@ -1,14 +1,14 @@
-local Map = require("core.map")
+local Registry = require("core.registry")
 local Events = require("core.events")
+local Input = require("core.input")
+local Loader = require("core.loader")
+local Map = require("core.map")
 local Logger = require("core.logger")
 local World = require("core.world")
-local Input = require("core.input")
-local Registry = require("core.registry")
-local Loader = require("core.loader")
+local Colors = require("core.render.colors")
 
 local Fonts = require("core.utils.fonts")
 
-local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer")
 local UIRenderer = require("core.render.ui_renderer")
 
@@ -39,15 +39,19 @@ local loaded_mods = {}
     --? love.graphics.newCanvas(), love.graphics.setCanvas()
     --? add render scale setting 
 -- TODO: larger map support (scrolling map and render only a portion of map)
+-- TODO: UI renderer needs to be updated to also have a sprite rendering mode
+-- TODO: In sprite mode, draw the map under all the entities, then draw the entities
+-- TODO: Add rotational support to sprites (for things like wall rotations)
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
-local logger
-local map
-local world
-local player
+G_logger = {}
+G_map = {}
+G_world = {}
+G_player = {}
+G_settings = {}
 
 function love.load(arg)
     math.randomseed(os.time(), os.time())
@@ -69,39 +73,30 @@ function love.load(arg)
         print("Mods folder created at: " .. love.filesystem.getSaveDirectory() .. "\\mods")
     end
 
-    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
-    print("Loaded " .. #loaded_mods .. " mods.")
-
-    local MovementSystem = Registry.resolve("systems", "movement")
-    local InputSystem = Registry.resolve("systems", "input")
-    local LevelSystem = Registry.resolve("systems", "level")
-    local HealthSystem = Registry.resolve("systems", "health")
-    local LoggerSystem = Registry.resolve("systems", "logger")
-    local InventorySystem = Registry.resolve("systems", "inventory")
-    local ClassSystem = Registry.resolve("systems", "class")
-    local TurnSystem = Registry.resolve("systems", "turn")
-    local PreviewSystem = Registry.resolve("systems", "preview")
-    local StatSystem = Registry.resolve("systems", "stats")
-    local MapGenerator = Registry.resolve("systems", "map_generator")
-    local LootTableSystem = Registry.resolve("systems", "loot_table")
-    local BrainSystem = Registry.resolve("systems", "brain")
-    local CombatSystem = Registry.resolve("systems", "combat")
-    local InteractionSystem = Registry.resolve("systems", "interaction")
-    local StatusSystem = Registry.resolve("systems", "status")
-
+    --? We need to build the globals before loading mod content in case a mod patches one of them
     local Position = Registry.resolve("components", "position")
     local Renderable = Registry.resolve("components", "renderable")
     local Stats = Registry.resolve("components", "stats")
     local Inventory = Registry.resolve("components", "inventory")
     local UIState = Registry.resolve("components", "ui_state")
+    local Settings = Registry.resolve("components", "settings")
 
-    logger = Logger.new()
-    map = Map.new({})
-    world = World.new()
-    player = world:add({
+    G_logger = Logger.new()
+    G_settings = Settings.new({
+        sprite_rendering = false -- default
+    })
+    G_map = Map.new({})
+    G_world = World.new()
+    G_player = G_world:add({
         name = "Player",
         position = Position.new({ x = 2, y = 2 }),
-        renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
+        renderable = Renderable.new({
+            glyph = "@",
+            fg = Colors.green,
+            sprite = {
+                x = 1, y = 0, resolution = 16
+            }
+        }),
         stats = Stats.new({ class = "human" }),
         inventory = Inventory.new({}),
         ui = UIState.new({}),
@@ -109,72 +104,14 @@ function love.load(arg)
         level = 1
     })
 
-    world.player = player
+    G_world.player = G_player
 
-    Events.on("interact", function(e)
+    loaded_mods = Loader.load_mod_content(Events, G_world, G_map, G_logger)
+    print("Loaded " .. #loaded_mods .. " mods.")
 
-        local target = e.target
-        local actor = e.actor
-
-        if not target then
-            return
-        end
-
-        local dx = math.abs(actor.position.x - target.position.x)
-        local dy = math.abs(actor.position.y - target.position.y)
-
-        if dx > 1 or dy > 1 then
-            e.cancelled = true
-            return
-        end
-
-        e.events = Events
-
-        local interactions = InteractionSystem.get_valid_interactions(target, e)
-
-        if #interactions == 0 then
-            e.cancelled = true
-            return
-        end
-
-        if #interactions > 1 and actor.ui then
-            actor.ui.interaction_open = true
-            actor.ui.interaction_target = target
-            actor.ui.interaction_event = e
-            actor.ui.interaction_options = interactions
-            actor.ui.interaction_selected_index = 1
-            e.pending = true
-            return
-        end
-
-        interactions[1].action(target, e)
-
-    end, 100)
-
-    TurnSystem.init(Events, world, map, logger)
-    InputSystem.init(Events, world, map, logger)
-    PreviewSystem.init(Events, world, map, logger)
-    MovementSystem.init(Events, world, map, logger)
-    CombatSystem.init(Events, world, map, logger)
-    HealthSystem.init(Events, world, map, logger)
-    StatusSystem.init(Events, world, map, logger)
-    LevelSystem.init(Events, world, map, logger)
-    LoggerSystem.init(Events, world, map, logger)
-    InventorySystem.init(Events, world, map, logger)
-    MapGenerator.init(Events, world, map, logger)
-    LootTableSystem.init(Events, world, map, logger)
-    BrainSystem.init(Events, world, map, logger)
-
-    --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
-    player.inventory.equipped = true
-    StatSystem.equip(player.stats, player.inventory)
-    table.insert(player.stats.equipped_items, player.inventory)
-
-    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single starter item
-    ClassSystem.init(Events, world, map, logger)
-
-    --? Build the map after loading the mods incase a mod changes how map generation works
-    Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
+    --? Move Ares initialization to a system in case someone wants to override it in a mod
+    local Game = Registry.resolve("systems", "game")
+    Game.init(Events, G_world, G_map, G_logger)
 end
 
 local screen = {}
@@ -182,17 +119,17 @@ local ui = {}
 
 local function build_ui_context()
     return {
-        player = player,
-        world = world,
-        map = map,
-        logger = logger,
+        player = G_player,
+        world = G_world,
+        map = G_map,
+        logger = G_logger,
         events = Events,
         mods = loaded_mods,
     }
 end
 
 function love.draw()
-    Renderer.draw(screen)
+    Renderer.draw(screen, G_settings)
     UIRenderer.draw(ui)
 end
 
@@ -202,19 +139,19 @@ function love.update(dt)
     if key then
         Events.emit("input", {
             key = key,
-            entity = player
+            entity = G_player
         })
     end
 
-    Events.emit("tick", { entity = player })
+    Events.emit("tick", { entity = G_player })
 
-    screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile)
+    screen = Renderer.build(G_world, G_map, G_player.turn_preview, G_player.position, G_player.ui.selected_tile)
     ui = UIRenderer.build(build_ui_context())
 end
 
 function love.quit()
     print("Game Over!") 
-    logger:save("saves/demo.log")
+    G_logger:save("saves/demo.log")
 
     Events.emit("shutdown", {})
 end

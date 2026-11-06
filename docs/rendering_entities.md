@@ -25,6 +25,11 @@ renderable = Renderable.new({
     italics   = false,
     bold      = false,
     underline = false,
+    sprite = {
+        x = 0, y = 0,
+        resolution = 16,
+        atlas_path = "assets/atlas_16px.png"
+    }
 })
 ```
 
@@ -38,6 +43,61 @@ Field | Type | Default | Description
 `italics` | boolean | `false` | Renders the glyph in italics
 `bold` | boolean | `false` | Renders the glyph bold
 `underline` | boolean | `false` | Renders the glyph underlined
+`sprite.x` | int | `0` | The x-coordinate for the sprite in the atlas image
+`sprite.y` | int | `0` | The y-coordinate for the sprite in the atlas image
+`resolution` | int | `16` | The size of the sprite
+`atlas_path` | string | `assets/atlas_16px.png` | The path to the image used for the sprite's source atlas
+
+---
+
+## Renderable sprites
+
+Sprite fields are optional and default individually:
+
+```lua
+local Renderable = Registry.resolve("components", "renderable")
+local player = Renderable.new({
+    glyph = "@",
+    sprite = { x = 1, y = 0 }
+})
+```
+
+`sprite.x` and `sprite.y` are zero-based atlas cell indices, not pixel offsets.
+Omitted fields default to `x = 0`, `y = 0`, `resolution = 16`, and
+`atlas_path = "assets/textures/atlas_16px.png"`. The resolution describes the
+source cell size; `G_settings.sprite_resolution` controls its displayed size.
+For example, a 16px sprite is scaled to 32x32 when the display resolution is 32.
+The same sprite fields may also be supplied at the top level when `sprite` is
+omitted.
+
+---
+
+## Tile sprites
+
+The functions in `core/render/tile_styles.lua` now return renderable definitions
+instead of just glyph strings. `TileStyles.W` selects an entry from `wall_styles`
+using the existing neighboring-wall logic. Each wall shape, including hidden
+walls (`" "`), has its own editable definition:
+
+```lua
+["│"] = Renderable.new({
+    glyph = "│",
+    sprite = {
+        x = 0, y = 0,
+        resolution = 16,
+        atlas_path = "assets/textures/atlas_16px.png"
+    }
+}),
+```
+
+Edit `floor_style` for floor tiles (`X`) and `corridor_style` for corridors (`C`).
+All built-in tile sprites initially use atlas cell `(0, 0)`; change their
+coordinates to match your artwork. Sprite defaults and scaling work exactly as
+they do for entities. Text mode still draws the selected glyph.
+
+Custom tile-style functions may return `Renderable.new({...})` to supply a glyph,
+colors, text styling, and a sprite. Existing functions returning only a glyph
+string remain supported and use the default sprite in sprite mode.
 
 ---
 

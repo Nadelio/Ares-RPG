@@ -39,7 +39,13 @@ function Wanderer.new(data)
         colldies = true,
         position = Position.new({ x = data.x or 0, y = data.y or 0 }),
 
-        renderable = Renderable.new({ glyph = "W" })
+        renderable = Renderable.new({
+            glyph = "W",
+            sprite = {
+                x = 1, y = 0,
+                resolution = 16
+            }
+        })
     })
 
     dynobj.placement_rules = PlacementRules.new({

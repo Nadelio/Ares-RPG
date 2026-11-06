@@ -29,7 +29,14 @@ function Door.new(data)
         type       = "door",
         collides   = true,
         position   = Position.new({ x = data.x or 0, y = data.y or 0 }),
-        renderable = Renderable.new({ glyph = "+", fg = Colors.yellow }),
+        renderable = Renderable.new({
+            glyph = "+",
+            fg = Colors.yellow,
+            sprite = {
+                x = 1, y = 1,
+                resolution = 16
+            }
+        }),
     })
 
     obj.interactable = Interactable.new({
@@ -39,11 +46,13 @@ function Door.new(data)
                 self.collides         = false
                 self.renderable.glyph = "/"
                 self.renderable.fg    = Colors.gray
+                self.renderable.sprite.x = 2
             else
                 -- close the door
                 self.collides         = true
                 self.renderable.glyph = "+"
                 self.renderable.fg    = Colors.yellow
+                self.renderable.sprite.x = 1
             end
         end,
     })
