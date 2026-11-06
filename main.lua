@@ -30,12 +30,6 @@ local loaded_mods = {}
     --? Need to modify loot tables to bias towards higher rarity items
     --? Need to mess with the rarity colors stuff and make it part of the Item component as an enum
 
--- TODO: interaction menu (only available if >1 interaction)
-    --? Whenever you interact with an entity with an interactable component,
-    --?   check all valid interactions,
-    --?   then display the interaction menu with those options,
-    --?   finally focus the menu
-    --? Up/Down arrows to move between options, esc to close interaction menu
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: Make player and enemy prefabs

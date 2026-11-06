@@ -20,6 +20,7 @@ function UIState.new(data)
         interaction_event = nil,
         interaction_options = {},
         interaction_selected_index = 1,
+        dialog_box_open = false
     }
 end
 

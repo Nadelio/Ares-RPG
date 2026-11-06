@@ -1,7 +1,11 @@
 local Registry = require("core.registry")
+local Colors = require("core.render.colors")
 
+local UI = require("core.systems.ui")
 
 local Wanderer = {}
+
+local dialog_timeout = 3 -- seconds
 
 local function isWall(map, x, y)
     if x < 1 or y < 1 then return false end
@@ -15,6 +19,11 @@ local function isWall(map, x, y)
     return tile.type == "W"
 end
 
+local quotes = {
+    " [PLACEHOLDER]",
+    " Move along."
+}
+
 function Wanderer.new(data)
     local DynamicObject = Registry.resolve("components", "dynamic_object")
     local Position = Registry.resolve("components", "position")
@@ -22,6 +31,7 @@ function Wanderer.new(data)
     local PlacementRules = Registry.resolve("components", "placement_rules")
     local Brain = Registry.resolve("components", "brain")
     local Stats = Registry.resolve("components", "stats")
+    local Interactable = Registry.resolve("components", "interactable")
 
     local dynobj = DynamicObject.new({
         name = "Wanderer",
@@ -70,7 +80,7 @@ function Wanderer.new(data)
             end
 
             if none then
-                if math.random(0, 100) < 1 then
+                if math.random(0, 99) < 1 then -- 1% of the time
                     return true
                 end
             end
@@ -87,8 +97,50 @@ function Wanderer.new(data)
 
     dynobj.stats = Stats.new({ health = 1, movement = 1 })
 
+    dynobj.interactable = Interactable.new({
+        interactions = {
+            {
+                label = "Chat with Wanderer",
+                description = "Share small talk with the stranger.",
+                action = function(self, e) -- only the player has the `ui` field (which contains the ui_state data), so we can "filter" that way
+                    if e.actor.ui then
+                        e.actor.ui.dialog_box_open = true
+                        e.actor.ui.dialog_msg = quotes[math.random(1, #quotes)]
+                        e.actor.ui.dialog_expires_at = love.timer.getTime() + dialog_timeout
+                    end
+                end,
+            },
+        },
+        interaction_label = "Interact" --? default value, explicitly define for future clarity
+    })
+
     return dynobj
 end
+
+UI.register("dialog_box_wanderer", {
+    order = 115, -- order is arbitrary, pretty much is just the order in which things are drawn
+    position = function(_, widget, widgets)
+        return UI.left_column_x(widget), UI.below(widgets, "controls")
+    end,
+    visible = function(context)
+        local ui = context.player.ui
+
+        if ui.dialog_box_open
+            and love.timer.getTime() >= ui.dialog_expires_at
+        then
+            ui.dialog_box_open = false
+        end
+
+        return ui.dialog_box_open
+    end,
+    build = function(context)
+        return UI.box("Wanderer", 24, 7, {
+            {
+                { text = context.player.ui.dialog_msg, color = Colors.reset }
+            }
+        })
+    end,
+})
 
 Registry.register("prefabs", "wanderer", Wanderer)
 

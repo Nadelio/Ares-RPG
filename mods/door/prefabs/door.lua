@@ -1,13 +1,29 @@
 local Registry     = require("core.registry")
-local Object       = require("core.components.object")
-local Position     = require("core.components.position")
-local Renderable   = require("core.components.renderable")
-local Interactable = require("core.components.interactable")
+
+local TileStyles   = require("core.render.tile_styles")
 local Colors       = require("core.render.colors")
 
 local Door = {}
 
+local function isCorridor(map, x, y)
+    if x < 1 or y < 1 then return false end
+
+    local row = map.tiles[y]
+    if not row then return false end
+
+    local tile = row[x]
+    if not tile then return false end
+
+    return tile.type == "C"
+end
+
 function Door.new(data)
+    local Object         = Registry.resolve("components", "object")
+    local Position       = Registry.resolve("components", "position")
+    local Renderable     = Registry.resolve("components", "renderable")
+    local Interactable   = Registry.resolve("components", "interactable")
+    local PlacementRules = Registry.resolve("components", "placement_rules")
+
     local obj = Object.new({
         name       = data.name or "Door",
         type       = "door",
@@ -30,6 +46,14 @@ function Door.new(data)
                 self.renderable.fg    = Colors.yellow
             end
         end,
+    })
+
+    obj.placement_rules = PlacementRules.new({
+        valid_placement = function(x, y, map)
+            if isCorridor(map, x, y) then
+                return math.random(0, 99) < 25 -- 25% of the time
+            end
+        end
     })
 
     return obj

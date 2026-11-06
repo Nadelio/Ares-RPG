@@ -69,7 +69,7 @@ function Chest.new(data)
             }
 
             if corners.TL or corners.TR or corners.BL or corners.BR then
-                if math.random(0, 100) < 10 then
+                if math.random(0, 99) < 10 then
                     return true
                 end
             end
