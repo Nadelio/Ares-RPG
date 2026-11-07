@@ -128,6 +128,7 @@ end
 -- create UI element
 UI.register("chest_inventory", {
     order = 25,
+    column = "right",
     position = function(_, _, widgets)
         return UI.right_column_start_x(), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
     end,

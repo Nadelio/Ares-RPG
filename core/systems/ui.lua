@@ -1,6 +1,7 @@
 local Registry = require("core.registry")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
+local Geometry = require("core.render.ui_geometry")
 
 
 local UI = {}
@@ -175,6 +176,12 @@ local function measure_text_width(text)
 end
 
 local function measure_widget(widget)
+    local settings = UI._layout_settings or G_settings
+    local font = get_font()
+    if font and settings and settings.sprite_rendering then
+        return Geometry.measure(widget, font, settings)
+    end
+
     local width = 0
     local line_count = widget.lines and #widget.lines or 0
 
@@ -205,6 +212,13 @@ local function find_widget(widgets, id)
 end
 
 local function measure_box_width(width)
+    local settings = UI._layout_settings or G_settings
+    local font = get_font()
+    if font and settings and settings.sprite_rendering then
+        local box = UI.box(nil, width, 3, {})
+        return Geometry.measure({ lines = box }, font, settings).width
+    end
+
     return measure_text_width(string.rep(" ", math.max(0, width or 0)))
 end
 
@@ -235,7 +249,7 @@ end
 function UI.left_column_x(widget)
     local screen_width = get_screen_size()
     local widget_width = measure_widget(widget).width
-    local reserved_width = measure_box_width(UI.layout.right_column_width)
+    local reserved_width = UI._right_column_width or measure_box_width(UI.layout.right_column_width)
 
     return math.max(
         UI.layout.margin,
@@ -252,7 +266,7 @@ end
 
 function UI.right_column_start_x()
     local screen_width = get_screen_size()
-    local reserved_width = measure_box_width(UI.layout.right_column_width)
+    local reserved_width = UI._right_column_width or measure_box_width(UI.layout.right_column_width)
 
     return math.max(UI.layout.margin, screen_width - UI.layout.margin - reserved_width)
 end
@@ -744,8 +758,10 @@ function UI.build_widget(id, context)
     return widget
 end
 
-function UI.build(context)
+function UI.build(context, settings)
     context = normalize_context(context)
+    UI._layout_settings = settings or context.settings or G_settings
+    UI._right_column_width = nil
 
     local built_widgets = {}
     local ids = {}
@@ -767,25 +783,34 @@ function UI.build(context)
         return left._slot < right._slot
     end)
 
+    local pending_widgets = {}
+    UI._right_column_width = measure_box_width(UI.layout.right_column_width)
     for _, id in ipairs(ids) do
-        local definition = UI.widgets[id]
         local widget = UI.build_widget(id, context)
-
         if widget and widget.lines then
-            if definition.position then
-                local x, y = definition.position(context, widget, built_widgets)
+            table.insert(pending_widgets, { widget = widget, definition = UI.widgets[id] })
+            if UI._layout_settings and UI._layout_settings.sprite_rendering and UI.widgets[id].column == "right" then
+                UI._right_column_width = math.max(UI._right_column_width, measure_widget(widget).width)
+            end
+        end
+    end
 
-                if x ~= nil then
-                    widget.x = x
-                end
+    for _, entry in ipairs(pending_widgets) do
+        local widget = entry.widget
+        local definition = entry.definition
+        if definition.position then
+            local x, y = definition.position(context, widget, built_widgets)
 
-                if y ~= nil then
-                    widget.y = y
-                end
+            if x ~= nil then
+                widget.x = x
             end
 
-            table.insert(built_widgets, widget)
+            if y ~= nil then
+                widget.y = y
+            end
         end
+
+        table.insert(built_widgets, widget)
     end
 
     return built_widgets
@@ -1028,6 +1053,7 @@ UI.register("inventory", {
 
 UI.register("item_details", {
     order = 26,
+    column = "right",
     position = function(context, widget, widgets)
         local player = context.player
 
@@ -1055,6 +1081,7 @@ UI.register("item_details", {
 
 UI.register("mods", {
     order = 23,
+    column = "right",
     position = function(_, widget, widgets)
         return UI.right_column_x(widget), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
     end,

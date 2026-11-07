@@ -4,19 +4,21 @@ local Renderable = require("core.components.renderable")
 local TileStyles = {}
 
 -- Atlas coordinates can be configured independently for each wall shape.
+-- Shapes reuse the base wall sprite rotated in 90 degree steps (clockwise):
+-- "─" is "│" turned once, corners turn from "╭", intersections from "├".
 local wall_styles = {
     [" "] = Renderable.new({ glyph = " ", sprite = { x = 1, y = 1 } }),
     ["●"] = Renderable.new({ glyph = "●", sprite = { x = 1, y = 1 } }),
     ["│"] = Renderable.new({ glyph = "│", sprite = { x = 1, y = 1 } }),
-    ["─"] = Renderable.new({ glyph = "─", sprite = { x = 1, y = 1 } }),
+    ["─"] = Renderable.new({ glyph = "─", sprite = { x = 1, y = 1, rotation = 90 } }),
     ["╭"] = Renderable.new({ glyph = "╭", sprite = { x = 1, y = 1 } }),
-    ["╮"] = Renderable.new({ glyph = "╮", sprite = { x = 1, y = 1 } }),
-    ["╰"] = Renderable.new({ glyph = "╰", sprite = { x = 1, y = 1 } }),
-    ["╯"] = Renderable.new({ glyph = "╯", sprite = { x = 1, y = 1 } }),
+    ["╮"] = Renderable.new({ glyph = "╮", sprite = { x = 1, y = 1, rotation = 90 } }),
+    ["╯"] = Renderable.new({ glyph = "╯", sprite = { x = 1, y = 1, rotation = 180 } }),
+    ["╰"] = Renderable.new({ glyph = "╰", sprite = { x = 1, y = 1, rotation = 270 } }),
     ["├"] = Renderable.new({ glyph = "├", sprite = { x = 1, y = 1 } }),
-    ["┤"] = Renderable.new({ glyph = "┤", sprite = { x = 1, y = 1 } }),
-    ["┴"] = Renderable.new({ glyph = "┴", sprite = { x = 1, y = 1 } }),
-    ["┬"] = Renderable.new({ glyph = "┬", sprite = { x = 1, y = 1 } }),
+    ["┤"] = Renderable.new({ glyph = "┤", sprite = { x = 1, y = 1, rotation = 180 } }),
+    ["┴"] = Renderable.new({ glyph = "┴", sprite = { x = 1, y = 1, rotation = 270 } }),
+    ["┬"] = Renderable.new({ glyph = "┬", sprite = { x = 1, y = 1, rotation = 90 } }),
     ["┼"] = Renderable.new({ glyph = "┼", sprite = { x = 1, y = 1 } }),
 }
 

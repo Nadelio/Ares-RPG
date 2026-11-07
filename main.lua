@@ -39,9 +39,6 @@ local loaded_mods = {}
     --? love.graphics.newCanvas(), love.graphics.setCanvas()
     --? add render scale setting 
 -- TODO: larger map support (scrolling map and render only a portion of map)
--- TODO: UI renderer needs to be updated to also have a sprite rendering mode
--- TODO: In sprite mode, draw the map under all the entities, then draw the entities
--- TODO: Add rotational support to sprites (for things like wall rotations)
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
@@ -130,7 +127,7 @@ end
 
 function love.draw()
     Renderer.draw(screen, G_settings)
-    UIRenderer.draw(ui)
+    UIRenderer.draw(ui, G_settings)
 end
 
 function love.update(dt)
@@ -146,7 +143,7 @@ function love.update(dt)
     Events.emit("tick", { entity = G_player })
 
     screen = Renderer.build(G_world, G_map, G_player.turn_preview, G_player.position, G_player.ui.selected_tile)
-    ui = UIRenderer.build(build_ui_context())
+    ui = UIRenderer.build(build_ui_context(), G_settings)
 end
 
 function love.quit()

@@ -44,7 +44,7 @@ local poisoned_blade = Item.new({
 ```
 
 `ItemEffectSystem` interprets these descriptors and emits their events. Effect-specific systems subscribe
-to events such as `status_applied`, `status_turn`, and `status_removed`; the item and status components
+to events such as `status_applied`, `status_turn`, and `status_removed`, the item and status components
 never store or execute functions. Item and status constructors reject nested functions, threads, userdata,
 and cyclic references in these declarative fields so violations fail immediately.
 

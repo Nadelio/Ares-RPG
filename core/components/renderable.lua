@@ -1,5 +1,6 @@
 local Registry = require("core.registry")
 local Colors = require("core.render.colors")
+local Sprites = require("core.render.sprites")
 local Renderable = {} 
 
 function Renderable.new(data)
@@ -16,7 +17,8 @@ function Renderable.new(data)
             x = sprite.x or 0,
             y = sprite.y or 0,
             atlas_path = sprite.atlas_path or "./assets/textures/atlas_16px.png",
-            resolution = sprite.resolution or 16
+            resolution = sprite.resolution or 16,
+            rotation = Sprites.normalize_rotation(sprite.rotation)
         }
     }
 end
