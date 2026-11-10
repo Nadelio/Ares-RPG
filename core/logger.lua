@@ -28,16 +28,37 @@ function Logger:next_turn()
 end
 
 function Logger:save(path)
-    local file, err = io.open(path, "w")
-    if not file then
-        error("Could not create ".. path .. " : " .. err)
-    else
-        for _, event in ipairs(self.events) do
-            file:write(self:format(event) .. "\n")
+    local lines = {}
+    for _, event in ipairs(self.events) do
+        table.insert(lines, self:format(event))
+    end
+    local content = table.concat(lines, "\n")
+    if #content > 0 then
+        content = content .. "\n"
+    end
+
+    if love and love.filesystem then
+        local dir = path:match("^(.*)[/\\][^/\\]+$")
+        if dir and dir ~= "" then
+            love.filesystem.createDirectory(dir)
         end
 
-        file:close()
+        local ok, err = love.filesystem.write(path, content)
+        if not ok then
+            print("Could not save log to " .. path .. " : " .. tostring(err))
+        end
+        return ok
     end
+
+    local file, err = io.open(path, "w")
+    if not file then
+        print("Could not save log to " .. path .. " : " .. tostring(err))
+        return false
+    end
+
+    file:write(content)
+    file:close()
+    return true
 end
 
 function Logger:format(event)

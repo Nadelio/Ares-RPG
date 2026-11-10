@@ -327,7 +327,10 @@ local function selected_inventory_item(player)
 
     if player.ui.chest_open and player.ui.chest_target and player.ui.inventory_focus == "chest" then
         local chest = player.ui.chest_target
-        local chest_items = chest.inventory and chest.inventory.items or {}
+        local chest_items = chest.loot_table
+            and chest.loot_table.inventory
+            and chest.loot_table.inventory.items
+            or {}
 
         return chest_items[player.ui.chest_selected_slot], chest.name or "Chest Item"
     end
