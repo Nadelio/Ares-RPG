@@ -14,7 +14,7 @@ function Coin.new(data)
         renderable = Renderable.new({ glyph = "$" })
     })
 
-    c.value = data.value
+    c.value = data.value or 1
     return c
 end
 

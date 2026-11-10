@@ -33,6 +33,10 @@ function Chest.new(data)
     local PlacementRules = Registry.resolve("components", "placement_rules")
 
     local CoinItem = Registry.resolve("prefabs", "coin")
+    local Dagger = Registry.resolve("prefabs", "dagger")
+    local Buckler = Registry.resolve("prefabs", "buckler")
+    local LuckyCharm = Registry.resolve("prefabs", "lucky_charm")
+    local HealthPotion = Registry.resolve("prefabs", "health_potion")
 
     local obj = Object.new({
         name = "Chest",
@@ -84,7 +88,11 @@ function Chest.new(data)
     })
     obj.loot_table = LootTable.new({
         valid_items = {
-            CoinItem
+            CoinItem,
+            Dagger,
+            Buckler,
+            LuckyCharm,
+            HealthPotion
         }
     })
     obj.interactable = Interactable.new({

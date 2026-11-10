@@ -32,6 +32,7 @@ function Wanderer.new(data)
     local Brain = Registry.resolve("components", "brain")
     local Stats = Registry.resolve("components", "stats")
     local Interactable = Registry.resolve("components", "interactable")
+    local LootTable = Registry.resolve("components", "loot_table")
 
     local dynobj = DynamicObject.new({
         name = "Wanderer",
@@ -102,6 +103,16 @@ function Wanderer.new(data)
     })
 
     dynobj.stats = Stats.new({ health = 1, movement = 1 })
+
+    --? Loot the wanderer can carry; generated when its inventory is
+    --? opened like a chest (e.g. once the death state allows looting).
+    dynobj.loot_table = LootTable.new({
+        valid_items = {
+            Registry.resolve("prefabs", "coin"),
+            Registry.resolve("prefabs", "dagger"),
+            Registry.resolve("prefabs", "lucky_charm")
+        }
+    })
 
     dynobj.interactable = Interactable.new({
         interactions = {

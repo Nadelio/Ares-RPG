@@ -186,6 +186,22 @@ function InventorySystem.init(Events, world, map, logger)
             return
         end
 
+        if item.consumable then
+            ItemEffectSystem.trigger(Events, item, "on_equip", {
+                item = item,
+                owner = entity,
+                entity = entity,
+                event = e,
+            })
+
+            Events.emit("inventory_remove", {
+                entity = entity,
+                index = index,
+                map = map,
+            })
+            return
+        end
+
         item.equipped = true
 
         StatSystem.equip(entity.stats, item)

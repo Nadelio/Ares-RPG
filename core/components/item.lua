@@ -25,6 +25,8 @@ function Item.new(data)
 
         size = data.size or 1,
 
+        consumable = data.consumable or false,
+
         equipped = false,
         dropped = false,
         owner_id = data.owner_id,

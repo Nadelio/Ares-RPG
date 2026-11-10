@@ -21,6 +21,8 @@ local loaded_mods = {}
     --? [TEST] unlocked skills, interactions, spells, etc
 
 -- TODO: combat system enhancements and enemies
+    --? Death state for both the player and npcs/enemies
+        --? Can't move and gain a new interaction to view their inventory like a chest
     --? Add weapon/armor advantage/disadvantage to combat resolution
     --? Add interaction and combat radius highlights
     --? Add concrete status effects and items that apply them
@@ -32,8 +34,9 @@ local loaded_mods = {}
 
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
+-- TODO: Rework UI and input systems so they don't need hard-coded inputs for every new UI widget
+
 -- TODO: Make player and enemy prefabs
--- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
 
 -- TODO: [BUG] On Linux and MacOS releases, window scale is backwards, solution: "render to an offscreen canvas"
     --? love.graphics.newCanvas(), love.graphics.setCanvas()
@@ -70,7 +73,7 @@ function love.load(arg)
         print("Mods folder created at: " .. love.filesystem.getSaveDirectory() .. "\\mods")
     end
 
-    --? We need to build the globals before loading mod content in case a mod patches one of them
+    --? Need to build the globals before loading mod content in case a mod patches one of them
     local Position = Registry.resolve("components", "position")
     local Renderable = Registry.resolve("components", "renderable")
     local Stats = Registry.resolve("components", "stats")
@@ -80,7 +83,7 @@ function love.load(arg)
 
     G_logger = Logger.new()
     G_settings = Settings.new({
-        sprite_rendering = false -- default
+        sprite_rendering = false --? default value for setting
     })
     G_map = Map.new({})
     G_world = World.new()
