@@ -2,6 +2,8 @@
 
 A simple turn-based cyberpunk/fantasy RPG that uses ascii-style graphics and has heavy modding support.
 
+[Mod Index](https://github.com/Nadelio/Ares-RPG-Mod-Index)
+
 ---
 
 Navigate the floors, traveling deeper and deeper until you either die or meet the man at the bottom of all this.\

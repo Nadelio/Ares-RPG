@@ -132,6 +132,33 @@ local door = Interactable.new({
 
 `interact_func` receives `(self, e)`, where `self` is the entity the component belongs to, and `e` is the `interact` event. If the entity's `interact_func` is `nil`, the interact event still fires but nothing happens.
 
+To expose more than one action, provide an `interactions` list instead. The game executes a single valid action immediately. When multiple actions are valid, it opens the interaction menu.
+
+```lua
+local terminal = Interactable.new({
+    interactions = {
+        {
+            label = "Read messages",
+            description = "Review the terminal's stored messages.",
+            action = function(self, e)
+                -- open the message UI
+            end,
+        },
+        {
+            label = "Override lock",
+            is_valid = function(self, e)
+                return e.actor.stats.current.hacking > 0
+            end,
+            action = function(self, e)
+                self.locked = false
+            end,
+        },
+    },
+})
+```
+
+Each interaction supports `label`, an optional `description`, an optional boolean or function `is_valid`, and an `action(self, e)` callback. Up/Down changes the selected menu action, E or Enter confirms it, and Escape closes the menu. `interact_func` remains supported for entities with one action.
+
 ### `object`
 
 `object` is the base component for world objects (things placed on the map that are not living entities):

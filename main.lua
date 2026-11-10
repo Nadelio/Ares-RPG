@@ -1,107 +1,57 @@
-local Map = require("core.map")
+local Registry = require("core.registry")
 local Events = require("core.events")
+local Input = require("core.input")
+local Loader = require("core.loader")
+local Map = require("core.map")
 local Logger = require("core.logger")
 local World = require("core.world")
-local Input = require("core.input")
-local Registry = require("core.registry")
-local Loader = require("core.loader")
+local Colors = require("core.render.colors")
 
 local Fonts = require("core.utils.fonts")
 
-local Colors = require("core.render.colors")
 local Renderer = require("core.render.renderer")
 local UIRenderer = require("core.render.ui_renderer")
-
-Loader.load_core_content()
-
-local MovementSystem = Registry.resolve("systems", "movement")
-local InputSystem = Registry.resolve("systems", "input")
-local LevelSystem = Registry.resolve("systems", "level")
-local HealthSystem = Registry.resolve("systems", "health")
-local LoggerSystem = Registry.resolve("systems", "logger")
-local InventorySystem = Registry.resolve("systems", "inventory")
-local ClassSystem = Registry.resolve("systems", "class")
-local TurnSystem = Registry.resolve("systems", "turn")
-local PreviewSystem = Registry.resolve("systems", "preview")
-local StatSystem = Registry.resolve("systems", "stats")
-local MapGenerator = Registry.resolve("systems", "map_generator")
-local LootTableSystem = Registry.resolve("systems", "loot_table")
-
-local Position = Registry.resolve("components", "position")
-local Renderable = Registry.resolve("components", "renderable")
-local Stats = Registry.resolve("components", "stats")
-local Inventory = Registry.resolve("components", "inventory")
-local UIState = Registry.resolve("components", "ui_state")
-
-local Chest = Registry.resolve("prefabs", "chest")
 
 local loaded_mods = {}
 
 -- TODO: [WIP] class system
--- TODO: Add weapon/armor advantage/disadvantage
---? [TEST] enemy advantage/disadvantage
---? [TEST] weapons/armor advantage/disadvantage
---? [TEST] unlocked skills, interactions, spells, etc
+    -- TODO: Add weapon/armor advantage/disadvantage
+    --? [TEST] enemy advantage/disadvantage
+    --? [TEST] weapons/armor advantage/disadvantage
+    --? [TEST] unlocked skills, interactions, spells, etc
 
--- TODO: [WIP] procedural map generation system
--- TODO: object/interactable/entity placer function (placer function should work with anything that has both Renderable and Position components)
--- TODO: larger map support (scrolling map and render only a portion of map)
--- TODO: add back T intersection rendering for walls in TileStyles
+-- TODO: combat system enhancements and enemies
+    --? Death state for both the player and npcs/enemies
+        --? Can't move and gain a new interaction to view their inventory like a chest
+    --? Add weapon/armor advantage/disadvantage to combat resolution
+    --? Add interaction and combat radius highlights
+    --? Add concrete status effects and items that apply them
 
--- TODO: combat system and enemies
 -- TODO: save system (serialize game state)
 -- TODO: implement all base stats (for combat and looting)
--- TODO: loot tables in container-type objects (like chests)
+    --? Need to modify loot tables to bias towards higher rarity items
+    --? Need to mess with the rarity colors stuff and make it part of the Item component as an enum
 
--- TODO: interaction menu (only available if >1 interaction)
 -- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
+-- TODO: Rework UI and input systems so they don't need hard-coded inputs for every new UI widget
+
 -- TODO: Make player and enemy prefabs
--- TODO: Make item prefabs (for all the starter items and all the items that are generated in loot tables)
+
+-- TODO: [BUG] On Linux and MacOS releases, window scale is backwards, solution: "render to an offscreen canvas"
+    --? love.graphics.newCanvas(), love.graphics.setCanvas()
+    --? add render scale setting 
+-- TODO: larger map support (scrolling map and render only a portion of map)
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
 --? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
-local logger = Logger.new()
-local map = Map.new({})
-local world = World.new()
-local player = world:add({
-    name = "Player",
-    position = Position.new({ x = 2, y = 2 }),
-    renderable = Renderable.new({ glyph = "@", fg = Colors.green }),
-    stats = Stats.new({ class = "human" }),
-    inventory = Inventory.new({}),
-    ui = UIState.new({}),
-
-    level = 1
-})
-
-world.player = player
-
-Events.on("interact", function(e)
-
-    local target = e.target
-    local actor = e.actor
-
-    if not target then
-        return
-    end
-
-    local dx = math.abs(actor.position.x - target.position.x)
-    local dy = math.abs(actor.position.y - target.position.y)
-
-    if dx > 1 or dy > 1 then
-        e.cancelled = true
-        return
-    end
-
-    if target.interactable.interact then
-        target.interactable.interact(target, e)
-    end
-
-end, 100)
-
+G_logger = {}
+G_map = {}
+G_world = {}
+G_player = {}
+G_settings = {}
 
 function love.load(arg)
     math.randomseed(os.time(), os.time())
@@ -116,70 +66,71 @@ function love.load(arg)
 
     love.keyboard.setKeyRepeat(false)
 
+    Loader.load_core_content()
+
     if not love.filesystem.getInfo("mods", "directory") then
         love.filesystem.createDirectory("mods")
         print("Mods folder created at: " .. love.filesystem.getSaveDirectory() .. "\\mods")
     end
 
-    TurnSystem.init(Events, world, map, logger)
-    InputSystem.init(Events, world, map, logger)
-    PreviewSystem.init(Events, world, map, logger)
-    MovementSystem.init(Events, world, map, logger)
-    HealthSystem.init(Events, world, map, logger)
-    LevelSystem.init(Events, world, map, logger)
-    LoggerSystem.init(Events, world, map, logger)
-    InventorySystem.init(Events, world, map, logger)
-    MapGenerator.init(Events, world, map, logger)
-    LootTableSystem.init(Events, world, map, logger)
+    --? Need to build the globals before loading mod content in case a mod patches one of them
+    local Position = Registry.resolve("components", "position")
+    local Renderable = Registry.resolve("components", "renderable")
+    local Stats = Registry.resolve("components", "stats")
+    local Inventory = Registry.resolve("components", "inventory")
+    local UIState = Registry.resolve("components", "ui_state")
+    local Settings = Registry.resolve("components", "settings")
 
-    --? manually equip player backpack (breaks if you use Events.emit("inventory_equip", {}), since inventory/backpack isn't a regular item)
-    player.inventory.equipped = true
-    StatSystem.equip(player.stats, player.inventory)
-    table.insert(player.stats.equipped_items, player.inventory)
+    G_logger = Logger.new()
+    G_settings = Settings.new({
+        sprite_rendering = false --? default value for setting
+    })
+    G_map = Map.new({})
+    G_world = World.new()
+    G_player = G_world:add({
+        name = "Player",
+        position = Position.new({ x = 2, y = 2 }),
+        renderable = Renderable.new({
+            glyph = "@",
+            fg = Colors.green,
+            sprite = {
+                x = 1, y = 0, resolution = 16
+            }
+        }),
+        stats = Stats.new({ class = "human" }),
+        inventory = Inventory.new({}),
+        ui = UIState.new({}),
 
-    --? need to initialize ClassSystem after equipping the inventory because otherwise you only get a single starter item
-    ClassSystem.init(Events, world, map, logger)
+        level = 1
+    })
 
-    loaded_mods = Loader.load_mod_content(Events, world, map, logger)
+    G_world.player = G_player
+
+    loaded_mods = Loader.load_mod_content(Events, G_world, G_map, G_logger)
     print("Loaded " .. #loaded_mods .. " mods.")
 
-    --? Build the map after loading the mods incase a mod changes how map generation works
-    Events.emit("build_map", { dimensions = { w = 50, h = 20 } })
-    
-    map:add_object(Chest.new({
-        x = player.position.x + 1,
-        y = player.position.y
-    })) -- place a chest to the right of the player
-    Events.emit("generate_loot_table", { -- fill chest with items
-        container = map:get_object(player.position.x + 1, player.position.y),
-    })
-
-    map:add_object(Chest.new({
-        x = player.position.x,
-        y = player.position.y + 1
-    })) -- place a chest below the player
-    Events.emit("generate_loot_table", {
-        container = map:get_object(player.position.x, player.position.y + 1),
-    })
+    --? Move Ares initialization to a system in case someone wants to override it in a mod
+    local Game = Registry.resolve("systems", "game")
+    Game.init(Events, G_world, G_map, G_logger)
 end
 
-local screen = {} 
-local ui = {} 
+local screen = {}
+local ui = {}
 
 local function build_ui_context()
     return {
-        player = player,
-        world = world,
-        map = map,
-        logger = logger,
+        player = G_player,
+        world = G_world,
+        map = G_map,
+        logger = G_logger,
         events = Events,
         mods = loaded_mods,
     }
 end
 
 function love.draw()
-    Renderer.draw(screen)
-    UIRenderer.draw(ui)
+    Renderer.draw(screen, G_settings)
+    UIRenderer.draw(ui, G_settings)
 end
 
 function love.update(dt)
@@ -188,19 +139,19 @@ function love.update(dt)
     if key then
         Events.emit("input", {
             key = key,
-            entity = player
+            entity = G_player
         })
     end
 
-    Events.emit("tick", { entity = player })
+    Events.emit("tick", { entity = G_player })
 
-    screen = Renderer.build(world, map, player.turn_preview, player.position, player.ui.selected_tile)
-    ui = UIRenderer.build(build_ui_context())
+    screen = Renderer.build(G_world, G_map, G_player.turn_preview, G_player.position, G_player.ui.selected_tile)
+    ui = UIRenderer.build(build_ui_context(), G_settings)
 end
 
 function love.quit()
     print("Game Over!") 
-    logger:save("saves/demo.log")
+    G_logger:save("saves/demo.log")
 
     Events.emit("shutdown", {})
 end

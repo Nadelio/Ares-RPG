@@ -13,7 +13,7 @@ function Registry.register(category, name, value)
 end
 
 function Registry.overwrite(category, name, value)
-    warn(category .. "." .. name .. " is being overwritten.")
+    print("Warning: " .. category .. "." .. name .. " is being overwritten.")
     Registry[category][name] = value
 end
 

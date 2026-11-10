@@ -1,14 +1,7 @@
 local Registry = require("core.registry")
-
-local Renderable = require("core.components.renderable")
-local Position   = require("core.components.position")
-local Interactable = require("core.components.interactable")
-local LootTable = require("core.components.loot_table")
-local Object = require("core.components.object")
+local Events = require("core.events")
 
 local UI = require("core.systems.ui")
-
-local CoinItem = require("core.prefabs.coin")
 
 local Chest = {}
 
@@ -19,19 +12,87 @@ local function clamp_chest_slot(player, chest)
     player.ui.chest_selected_slot = math.max(1, math.min(player.ui.chest_selected_slot or 1, max_slot))
 end
 
+local function isWall(map, x, y)
+    if x < 1 or y < 1 then return false end
+
+    local row = map.tiles[y]
+    if not row then return false end
+
+    local tile = row[x]
+    if not tile then return false end
+
+    return tile.type == "W"
+end
+
 function Chest.new(data)
+    local Renderable = Registry.resolve("components", "renderable")
+    local Position   = Registry.resolve("components", "position")
+    local Interactable = Registry.resolve("components", "interactable")
+    local LootTable = Registry.resolve("components", "loot_table")
+    local Object = Registry.resolve("components", "object")
+    local PlacementRules = Registry.resolve("components", "placement_rules")
+
+    local CoinItem = Registry.resolve("prefabs", "coin")
+    local Dagger = Registry.resolve("prefabs", "dagger")
+    local Buckler = Registry.resolve("prefabs", "buckler")
+    local LuckyCharm = Registry.resolve("prefabs", "lucky_charm")
+    local HealthPotion = Registry.resolve("prefabs", "health_potion")
+
     local obj = Object.new({
         name = "Chest",
         type = "container",
         collides = true,
         position = Position.new({ x = (data.x or 0), y = (data.y or 0) }),
 
-        renderable = Renderable.new({ glyph = "C" }),
+        renderable = Renderable.new({
+            glyph = "C",
+            sprite = {
+                x = 2, y = 0,
+                resolution = 16
+            }
+        }),
     })
 
+    obj.placement_rules = PlacementRules.new({
+        valid_placement = function(x, y, map)
+            if map.tiles[y][x].type ~= "X" then
+                return false
+            end
+
+            local walls = {
+                TL = isWall(map, x - 1, y - 1),
+                TC = isWall(map, x    , y - 1),
+                TR = isWall(map, x + 1, y - 1),
+                ML = isWall(map, x - 1, y    ),
+                MC = isWall(map, x    , y    ),
+                MR = isWall(map, x + 1, y    ),
+                BL = isWall(map, x - 1, y + 1),
+                BC = isWall(map, x    , y + 1),
+                BR = isWall(map, x + 1, y + 1),
+            }
+            
+            local corners = {
+                TL = walls.TL and walls.TC and walls.ML,
+                TR = walls.TR and walls.TC and walls.MR,
+                BL = walls.BL and walls.BC and walls.ML,
+                BR = walls.BR and walls.BC and walls.MR
+            }
+
+            if corners.TL or corners.TR or corners.BL or corners.BR then
+                if math.random(0, 99) < 10 then
+                    return true
+                end
+            end
+            return false
+        end
+    })
     obj.loot_table = LootTable.new({
         valid_items = {
-            CoinItem
+            CoinItem,
+            Dagger,
+            Buckler,
+            LuckyCharm,
+            HealthPotion
         }
     })
     obj.interactable = Interactable.new({
@@ -40,6 +101,13 @@ function Chest.new(data)
 
             if not actor or not actor.ui then
                 return
+            end
+
+            if entity.first_open then -- generate loot table on the first time the chest is opened
+                Events.emit("generate_loot_table", {
+                    container = entity
+                })
+                entity.first_open = false
             end
 
             if actor.ui.chest_open and actor.ui.chest_target == entity then
@@ -60,6 +128,7 @@ function Chest.new(data)
             clamp_chest_slot(actor, entity)
         end,
     })
+    obj.first_open = true
 
     return obj 
 end
@@ -67,6 +136,7 @@ end
 -- create UI element
 UI.register("chest_inventory", {
     order = 25,
+    column = "right",
     position = function(_, _, widgets)
         return UI.right_column_start_x(), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
     end,

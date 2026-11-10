@@ -1,10 +1,10 @@
 local Registry = require("core.registry")
-local MovementRules = require("core.systems.move_rules")
-local StatSystem = require("core.systems.stats")
 
-local MovementSystem = {} 
+local MovementSystem = {}
 
 function MovementSystem.init(Events, world, map, logger)
+    local MovementRules = Registry.resolve("systems", "move_rules")
+    local StatSystem = Registry.resolve("systems", "stats")
 
     Events.on("move", function(e)
 

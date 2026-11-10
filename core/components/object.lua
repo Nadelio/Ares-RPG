@@ -1,10 +1,10 @@
 local Registry = require("core.registry")
-local Renderable = require("core.components.renderable")
-local Position   = require("core.components.position")
 
 local Object = {}
 
 function Object.new(data)
+    local Renderable = Registry.resolve("components", "renderable")
+    local Position   = Registry.resolve("components", "position")
     return {
         name = data.name or "Unknown Object",
         type = data.type or "Unknown",

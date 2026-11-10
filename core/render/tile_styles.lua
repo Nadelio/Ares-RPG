@@ -1,4 +1,29 @@
+local ConstTable = require("core.utils.const_table")
+local Renderable = require("core.components.renderable")
+
 local TileStyles = {}
+
+-- Atlas coordinates can be configured independently for each wall shape.
+-- Shapes reuse the base wall sprite rotated in 90 degree steps (clockwise):
+-- "─" is "│" turned once, corners turn from "╭", intersections from "├".
+local wall_styles = {
+    [" "] = Renderable.new({ glyph = " ", sprite = { x = 1, y = 1 } }),
+    ["●"] = Renderable.new({ glyph = "●", sprite = { x = 1, y = 1 } }),
+    ["│"] = Renderable.new({ glyph = "│", sprite = { x = 1, y = 1 } }),
+    ["─"] = Renderable.new({ glyph = "─", sprite = { x = 1, y = 1, rotation = 90 } }),
+    ["╭"] = Renderable.new({ glyph = "╭", sprite = { x = 1, y = 1 } }),
+    ["╮"] = Renderable.new({ glyph = "╮", sprite = { x = 1, y = 1, rotation = 90 } }),
+    ["╯"] = Renderable.new({ glyph = "╯", sprite = { x = 1, y = 1, rotation = 180 } }),
+    ["╰"] = Renderable.new({ glyph = "╰", sprite = { x = 1, y = 1, rotation = 270 } }),
+    ["├"] = Renderable.new({ glyph = "├", sprite = { x = 1, y = 1 } }),
+    ["┤"] = Renderable.new({ glyph = "┤", sprite = { x = 1, y = 1, rotation = 180 } }),
+    ["┴"] = Renderable.new({ glyph = "┴", sprite = { x = 1, y = 1, rotation = 270 } }),
+    ["┬"] = Renderable.new({ glyph = "┬", sprite = { x = 1, y = 1, rotation = 90 } }),
+    ["┼"] = Renderable.new({ glyph = "┼", sprite = { x = 1, y = 1 } }),
+}
+
+local floor_style = Renderable.new({ glyph = " ", sprite = { x = 0, y = 1 } })
+local corridor_style = Renderable.new({ glyph = " ", sprite = { x = 0, y = 1 } })
 
 local function isWall(map, x, y)
     if x < 1 or y < 1 then return false end
@@ -34,6 +59,25 @@ local function isVisibleWall(map, x, y)
     )
 end
 
+local mask_constants = ConstTable.new({
+    NONE = 0,
+    TOP = 1,
+    RIGHT = 2,
+    TR_CORNER = 3,
+    BOTTOM = 4,
+    TB_LINE = 5,
+    BR_CORNER = 6,
+    RIGHT_INTERSECTION = 7,
+    LEFT = 8,
+    TL_CORNER = 9,
+    RL_LINE = 10,
+    TOP_INTERSECTION = 11,
+    BL_CORNER = 12,
+    LEFT_INTERSECTION = 13,
+    BOTTOM_INTERSECTION = 14,
+    ALL = 15,
+})
+
 local function mask(map, x, y)
     local m = 0
 
@@ -45,7 +89,7 @@ local function mask(map, x, y)
     return m
 end
 
-TileStyles.W = function(x, y, map)
+local function wall_glyph(x, y, map)
     if not isVisibleWall(map, x, y) then return " " end
 
     local non_wall_count = 0
@@ -67,31 +111,46 @@ TileStyles.W = function(x, y, map)
 
     local m = mask(map, x, y)
 
-    -- isolated wall
-    if m == 0 then return "█" end
+    -- isolated wall -> treat like pillar
+    if m == mask_constants.NONE then return "●" end
 
     -- straight lines
-    if m == 1 or m == 4 or m == 5 then return "│" end
-    if m == 2 or m == 8 or m == 10 then return "─" end
+    if m == mask_constants.TOP or m == mask_constants.BOTTOM or m == (mask_constants.TOP + mask_constants.BOTTOM) then return "│" end
+    if m == mask_constants.RIGHT or m == mask_constants.LEFT or m == (mask_constants.RIGHT + mask_constants.LEFT) then return "─" end
 
     -- corners
-    if m == 1 + 2 then return "╰" end
-    if m == 1 + 8 then return "╯" end
-    if m == 4 + 2 then return "╭" end
-    if m == 4 + 8 then return "╮" end
+    if m == mask_constants.TR_CORNER then return "╰" end
+    if m == mask_constants.TL_CORNER then return "╯" end
+    if m == mask_constants.BR_CORNER then return "╭" end
+    if m == mask_constants.BL_CORNER then return "╮" end
+
+    if m == mask_constants.RIGHT_INTERSECTION then return "├" end
+    if m == mask_constants.LEFT_INTERSECTION then return "┤" end
+    if m == mask_constants.TOP_INTERSECTION then return "┴" end
+    if m == mask_constants.BOTTOM_INTERSECTION then return "┬" end
+    if m == mask_constants.ALL then return "┼" end
 
     -- thick walls
-    local has_lr = (m == 10 or m == 11 or m == 14 or m == 15)
+    local has_lr = (
+        m == mask_constants.RL_LINE or
+        m == mask_constants.TOP_INTERSECTION or
+        m == mask_constants.BOTTOM_INTERSECTION or
+        m == mask_constants.ALL
+    )
     if has_lr then return "─" end
     return "│"
 end
 
+TileStyles.W = function(x, y, map)
+    return wall_styles[wall_glyph(x, y, map)]
+end
+
 TileStyles.X = function()
-    return " "
+    return floor_style
 end
 
 TileStyles.C = function()
-    return " "
+    return corridor_style
 end
 
 return TileStyles

@@ -1,9 +1,12 @@
 local Registry = require("core.registry")
-local StatSystem = require("core.systems.stats")
 local HealthSystem = {}
 
 function HealthSystem.init(Events, world, map, logger)
+    local StatSystem = Registry.resolve("systems", "stats")
     Events.on("attack", function(e)
+        if e.cancelled then
+            return
+        end
 
         local entity = e.target
         local amount = e.damage or 0

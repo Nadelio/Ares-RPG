@@ -4,46 +4,89 @@ Events._listeners = {}
 Events._priorities = {} 
 
 function Events.on(eventType, fn, priority)
-    priority = priority or 0 
+    priority = priority or 0
 
-    Events._listeners[eventType] = Events._listeners[eventType] or {} 
+    Events._listeners[eventType] = Events._listeners[eventType] or {}
 
     table.insert(Events._listeners[eventType], {
         fn = fn,
-        priority = priority
-    }) 
+        priority = priority,
+        expires = false
+    })
 
     table.sort(Events._listeners[eventType], function(a, b)
         return a.priority > b.priority
-    end) 
+    end)
 end
 
 function Events.emit(eventType, data)
-    local listeners = Events._listeners[eventType] 
-    if not listeners then return data end 
+    local listeners = Events._listeners[eventType]
+    if not listeners then return data end
 
-    data = data or {} 
+    data = data or {}
 
-    data.cancelled = false 
+    data.cancelled = false
 
-    for _, listener in ipairs(listeners) do
+    for idx, listener in ipairs(listeners) do
 
-        listener.fn(data) 
+        listener.fn(data)
+
+        if listener.expires and listener.times <= 0 then
+            table.remove(listeners, idx)
+        elseif listener.expires and listener.times > 0 then
+            listener.times = listener.times - 1
+        end
 
         if data.cancelled then
-            break 
+            break
         end
     end
 
-    return data 
+    return data
+end
+
+--- listen to an event once before removing from listeners
+function Events.once(eventType, fn, priority)
+    priority = priority or 0
+
+    Events._listeners[eventType] = Events._listeners[eventType] or {}
+
+    table.insert(Events._listeners[eventType], {
+        fn = fn,
+        priority = priority,
+        expires = true,
+        times = 1
+    })
+
+    table.sort(Events._listeners[eventType], function(a, b)
+        return a.priority > b.priority
+    end)
+end
+
+--- listen to an event `times` times before removing from listeners
+function Events.only(eventType, fn, priority, times)
+    priority = priority or 0
+
+    Events._listeners[eventType] = Events._listeners[eventType] or {}
+
+    table.insert(Events._listeners[eventType], {
+        fn = fn,
+        priority = priority,
+        expires = true,
+        times = times
+    })
+
+    table.sort(Events._listeners[eventType], function(a, b)
+        return a.priority > b.priority
+    end)
 end
 
 function Events.before(eventType, fn)
-    Events.on("before:" .. eventType, fn, 200) 
+    Events.on("before:" .. eventType, fn, math.maxinteger)
 end
 
 function Events.after(eventType, fn)
-    Events.on("after:" .. eventType, fn, -200) 
+    Events.on("after:" .. eventType, fn, -math.maxinteger)
 end
 
-return Events 
+return Events

@@ -1,5 +1,4 @@
 local Registry = require("core.registry")
-local ClassSystem = require("core.systems.class")
 
 local LevelSystem = {} 
 
@@ -28,7 +27,7 @@ local function ensure_progression(entity)
     entity.experience_to_next_level = entity.experience_to_next_level or (5 + entity.level)
 
     if entity.stats then
-        entity.stats.level = entity.level
+        entity.stats.base.level = entity.level
     end
 
     return entity
@@ -76,6 +75,8 @@ local function refresh_requirement(entity)
 end
 
 local function calculate_kill_experience(entity, target)
+    local ClassSystem = Registry.resolve("systems", "class")
+    
     local amount = LevelSystem.rewards.kill
     local enemy_tags = collect_enemy_tags(target)
     local has_advantage = false
@@ -165,7 +166,7 @@ function LevelSystem.init(Events, world, map, logger)
     end, -50)
 
     Events.on("interact", function(e)
-        if e.cancelled or not e.actor then
+        if e.cancelled or e.pending or not e.actor then
             return
         end
 
@@ -233,7 +234,7 @@ function LevelSystem.init(Events, world, map, logger)
         entity.level = entity.level + levels
 
         if entity.stats then
-            entity.stats.level = entity.level
+            entity.stats.base.level = entity.level
         end
 
         refresh_requirement(entity)

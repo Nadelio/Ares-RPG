@@ -15,6 +15,12 @@ function UIState.new(data)
         level_up_open = false,
         level_up_tab = "stats",
         level_up_selected_index = 1,
+        interaction_open = false,
+        interaction_target = nil,
+        interaction_event = nil,
+        interaction_options = {},
+        interaction_selected_index = 1,
+        dialog_box_open = false
     }
 end
 

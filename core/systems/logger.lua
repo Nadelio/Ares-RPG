@@ -37,6 +37,10 @@ function LoggerSystem.init(Events, world, map, logger)
         }) 
     end, -100)
     Events.on("inventory_pickup", function(e)
+        if e.cancelled then
+            return
+        end
+
         logger:add("inventory_pickup", nil, {
             actor = e.actor.name,
             target = e.target.name,
@@ -58,6 +62,10 @@ function LoggerSystem.init(Events, world, map, logger)
     end, -100) 
 
     Events.on("attack", function(e)
+        if e.cancelled or not e.attacker or not e.target then
+            return
+        end
+
         logger:add("attack", nil, {
             attacker = e.attacker.name,
             target = e.target.name,

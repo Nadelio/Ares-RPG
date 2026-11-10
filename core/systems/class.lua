@@ -2,10 +2,6 @@ local Registry = require("core.registry")
 
 local TableUtils = require("core.utils.table_utils")
 
-local Item = require("core.components.item")
-local Stats = require("core.components.stats")
-local StatSystem = require("core.systems.stats")
-
 local ClassSystem = {}
 
 local LEVELABLE_STATS = {
@@ -40,12 +36,15 @@ local function normalize_class_id(class_id)
 end
 
 local function reset_base_stats(stats)
+	local StatSystem = Registry.resolve("systems", "stats")
+	local Stats = Registry.resolve("components", "stats")
 	for _, definition in ipairs(Stats.definitions) do
 		StatSystem.setBase(stats, definition.key, 0)
 	end
 end
 
 local function adjust_tracked_current(entity, stat, amount)
+	local StatSystem = Registry.resolve("systems", "stats")
 	if stat ~= "health" and stat ~= "movement" then
 		return
 	end
@@ -57,6 +56,7 @@ local function adjust_tracked_current(entity, stat, amount)
 end
 
 local function apply_base_changes(entity, deltas)
+	local StatSystem = Registry.resolve("systems", "stats")
 	for stat, amount in pairs(deltas or {}) do
 		StatSystem.modifyBase(entity.stats, stat, amount)
 		adjust_tracked_current(entity, stat, amount)
@@ -103,20 +103,7 @@ ClassSystem.definitions = {
 		level_up_stats = { "health", "movement", "luck", "defense", "attack" },
 		favored_enemy_tags = { "beast" },
 		disfavored_enemy_tags = {},
-		starter_items = {
-			{
-				name = "Rusty Sword",
-				description = "A dependable blade for a new wanderer.",
-				rarity = "common",
-				bonuses = { attack = 2 },
-			},
-			{
-				name = "Traveler's Coat",
-				description = "Light armor meant for long roads.",
-				rarity = "common",
-				bonuses = { defense = 1 },
-			},
-		},
+		starter_items = { "rusty_sword", "travelers_coat" },
 		skills = {
 			{ id = "adapt", name = "Adapt", level = 2, description = "Gain a flexible edge when plans go bad." },
 			{ id = "scrapper", name = "Scrapper", level = 4, description = "Turn improvised weapons into real threats." },
@@ -139,20 +126,7 @@ ClassSystem.definitions = {
 		level_up_stats = { "attack", "health", "defense", "movement" },
 		favored_enemy_tags = { "brute", "humanoid" },
 		disfavored_enemy_tags = { "specter" },
-		starter_items = {
-			{
-				name = "Weighted Wraps",
-				description = "Cloth wraps packed with enough heft to sting.",
-				rarity = "common",
-				bonuses = { attack = 2 },
-			},
-			{
-				name = "Mouthguard",
-				description = "A battered guard that helps you keep your footing.",
-				rarity = "common",
-				bonuses = { defense = 1 },
-			},
-		},
+		starter_items = { "weighted_wraps", "mouthguard" },
 		skills = {
 			{ id = "counter_hook", name = "Counter Hook", level = 2, description = "Punish enemies that close the distance." },
 			{ id = "backblast", name = "Backblast", level = 4, description = "Absorb pressure before swinging back harder." },
@@ -175,20 +149,7 @@ ClassSystem.definitions = {
 		level_up_stats = { "luck", "movement", "attack", "health" },
 		favored_enemy_tags = { "construct", "machine" },
 		disfavored_enemy_tags = { "brute" },
-		starter_items = {
-			{
-				name = "Loaded Dice",
-				description = "Weighted just enough to offend a fair table.",
-				rarity = "rare",
-				bonuses = { luck = 2 },
-			},
-			{
-				name = "Cardsharp Vest",
-				description = "More pockets than protection, but still some protection.",
-				rarity = "common",
-				bonuses = { defense = 1 },
-			},
-		},
+		starter_items = { "loaded_dice", "cardsharp_vest" },
 		skills = {
 			{ id = "stacked_deck", name = "Stacked Deck", level = 2, description = "Turn a risky interaction into a favorable one." },
 			{ id = "double_or_nothing", name = "Double or Nothing", level = 4, description = "Commit to huge swings when the odds look right." },
@@ -213,20 +174,7 @@ ClassSystem.definitions = {
 		level_up_stats = { "health", "luck", "defense", "attack" },
 		favored_enemy_tags = { "undead", "plague" },
 		disfavored_enemy_tags = { "automaton" },
-		starter_items = {
-			{
-				name = "Bone Saw",
-				description = "Sharp enough for surgery and emergencies alike.",
-				rarity = "common",
-				bonuses = { attack = 1 },
-			},
-			{
-				name = "Field Coat",
-				description = "A stitched coat with room for bandages and blame.",
-				rarity = "common",
-				bonuses = { defense = 1, health = 1 },
-			},
-		},
+		starter_items = { "bone_saw", "field_coat" },
 		skills = {
 			{ id = "triage", name = "Triage", level = 2, description = "Stabilize wounded allies under pressure." },
 			{ id = "steady_hands", name = "Steady Hands", level = 4, description = "Keep utility items effective in chaotic fights." },
@@ -251,20 +199,7 @@ ClassSystem.definitions = {
 		level_up_stats = { "movement", "luck", "health", "attack" },
 		favored_enemy_tags = { "beast", "sniper" },
 		disfavored_enemy_tags = { "netter" },
-		starter_items = {
-			{
-				name = "Sprint Shoes",
-				description = "Light shoes built for reckless route changes.",
-				rarity = "rare",
-				bonuses = { movement = 1 },
-			},
-			{
-				name = "Windbreaker",
-				description = "Thin armor for someone who plans on never getting hit twice.",
-				rarity = "common",
-				bonuses = { defense = 1 },
-			},
-		},
+		starter_items = { "sprint_shoes", "windbreaker" },
 		skills = {
 			{ id = "dash_step", name = "Dash Step", level = 2, description = "Exploit narrow openings in movement-heavy turns." },
 			{ id = "line_break", name = "Line Break", level = 4, description = "Push through control effects by sheer momentum." },
@@ -310,6 +245,8 @@ function ClassSystem.refresh_progression(entity)
 end
 
 function ClassSystem.assign(entity, class_id, Events)
+	local StatSystem = Registry.resolve("systems", "stats")
+	local Item = Registry.resolve("components", "item")
 	assert(entity and entity.stats, "Cannot assign a class to an entity without stats")
 
 	local definition, resolved_id = ClassSystem.get_definition(class_id or entity.class_id or entity.stats.class)
@@ -323,8 +260,8 @@ function ClassSystem.assign(entity, class_id, Events)
 
 	entity.stats.class = definition.name
 	entity.class_id = resolved_id
-	entity.level = entity.level or entity.stats.level or 1
-	entity.stats.level = entity.level
+	entity.level = entity.level or entity.stats.base.level or 1
+	entity.stats.base.level = entity.level
 	entity.stats.current.health = StatSystem.get(entity.stats, "health")
 	entity.stats.current.movement = StatSystem.get(entity.stats, "movement")
 	entity.stats.current.capacity = entity.stats.current.capacity or 0
@@ -355,7 +292,16 @@ function ClassSystem.assign(entity, class_id, Events)
 
 	if Events then
 		for _, starter in ipairs(definition.starter_items or {}) do
-			local item = Item.new(TableUtils.clone(starter))
+			local item
+
+			--? Starter items are prefab names, but inline item data tables
+			--? are still supported so mods can define classes either way.
+			if type(starter) == "string" then
+				item = Registry.resolve("prefabs", starter).new({})
+			else
+				item = Item.new(TableUtils.clone(starter))
+			end
+
 			item.class_starter = true
 			item.class_owner = resolved_id
 
@@ -388,6 +334,8 @@ function ClassSystem.get_level_up_options(entity)
 end
 
 function ClassSystem.get_level_up_choices(entity)
+	
+	local Stats = Registry.resolve("components", "stats")
 	local options = ClassSystem.get_level_up_options(entity)
 
 	if not options then
@@ -604,7 +552,7 @@ function ClassSystem.init(Events, world, map, logger)
 			return
 		end
 
-		entity.stats.level = entity.level or entity.stats.level
+		entity.stats.base.level = entity.level or entity.stats.base.level
 
 		local previous_level = math.max(0, (entity.level or 1) - levels)
 

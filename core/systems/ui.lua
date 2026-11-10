@@ -1,9 +1,9 @@
 local Registry = require("core.registry")
-local Stats = require("core.components.stats")
 local RarityColors = require("core.render.raritycolors")
 local Colors = require("core.render.colors")
-local StatSystem = require("core.systems.stats")
-local ClassSystem = require("core.systems.class")
+local Geometry = require("core.render.ui_geometry")
+
+
 local UI = {}
 
 UI.widgets = {}
@@ -49,6 +49,7 @@ local function title_case(text)
 end
 
 local function get_stat_definition(stat)
+    local Stats = Registry.resolve("components", "stats")
     return Stats.get_definition(stat) or {
         key = stat,
         label = title_case(stat)
@@ -175,6 +176,12 @@ local function measure_text_width(text)
 end
 
 local function measure_widget(widget)
+    local settings = UI._layout_settings or G_settings
+    local font = get_font()
+    if font and settings and settings.sprite_rendering then
+        return Geometry.measure(widget, font, settings)
+    end
+
     local width = 0
     local line_count = widget.lines and #widget.lines or 0
 
@@ -205,6 +212,13 @@ local function find_widget(widgets, id)
 end
 
 local function measure_box_width(width)
+    local settings = UI._layout_settings or G_settings
+    local font = get_font()
+    if font and settings and settings.sprite_rendering then
+        local box = UI.box(nil, width, 3, {})
+        return Geometry.measure({ lines = box }, font, settings).width
+    end
+
     return measure_text_width(string.rep(" ", math.max(0, width or 0)))
 end
 
@@ -235,7 +249,7 @@ end
 function UI.left_column_x(widget)
     local screen_width = get_screen_size()
     local widget_width = measure_widget(widget).width
-    local reserved_width = measure_box_width(UI.layout.right_column_width)
+    local reserved_width = UI._right_column_width or measure_box_width(UI.layout.right_column_width)
 
     return math.max(
         UI.layout.margin,
@@ -252,7 +266,7 @@ end
 
 function UI.right_column_start_x()
     local screen_width = get_screen_size()
-    local reserved_width = measure_box_width(UI.layout.right_column_width)
+    local reserved_width = UI._right_column_width or measure_box_width(UI.layout.right_column_width)
 
     return math.max(UI.layout.margin, screen_width - UI.layout.margin - reserved_width)
 end
@@ -278,6 +292,7 @@ function UI.below(widgets, id, spacing)
 end
 
 local function get_ordered_bonus_keys(bonuses)
+    local Stats = Registry.resolve("components", "stats")
     local ordered = {}
     local seen = {}
 
@@ -312,7 +327,10 @@ local function selected_inventory_item(player)
 
     if player.ui.chest_open and player.ui.chest_target and player.ui.inventory_focus == "chest" then
         local chest = player.ui.chest_target
-        local chest_items = chest.inventory and chest.inventory.items or {}
+        local chest_items = chest.loot_table
+            and chest.loot_table.inventory
+            and chest.loot_table.inventory.items
+            or {}
 
         return chest_items[player.ui.chest_selected_slot], chest.name or "Chest Item"
     end
@@ -325,6 +343,8 @@ local function selected_inventory_item(player)
 end
 
 local function build_status_rows(player)
+    local StatSystem = Registry.resolve("systems", "stats")
+    local Stats = Registry.resolve("components", "stats")
     local rows = {}
     local compact_entries = {}
     table.insert(rows, {
@@ -355,12 +375,6 @@ local function build_status_rows(player)
         end
     end
 
-    table.insert(compact_entries, {
-        label = "LV",
-        value = tostring(player.level or 1),
-        color = Colors.blue
-    })
-
     for i = 1, #compact_entries, 2 do
         local left = compact_entries[i]
         local right = compact_entries[i + 1]
@@ -377,6 +391,38 @@ local function build_status_rows(player)
 
         table.insert(rows, row)
     end
+
+    return rows
+end
+
+local function build_interaction_rows(player)
+    local rows = {}
+    local options = player.ui.interaction_options or {}
+    local selected_index = player.ui.interaction_selected_index or 1
+
+    for index, option in ipairs(options) do
+        local selected = index == selected_index
+
+        table.insert(rows, {
+            { text = selected and "> " or "  ", color = Colors.reset },
+            { text = option.label, color = selected and Colors.yellow or Colors.reset },
+        })
+
+        if selected and option.description then
+            for _, line in ipairs(wrap_text(option.description, 34)) do
+                table.insert(rows, {
+                    { text = "    " .. line, color = Colors.gray },
+                })
+            end
+        end
+    end
+
+    table.insert(rows, {
+        { text = " UP/DOWN select  E/ENTER choose", color = Colors.gray },
+    })
+    table.insert(rows, {
+        { text = " ESC close", color = Colors.gray },
+    })
 
     return rows
 end
@@ -462,6 +508,7 @@ local function find_level_up_tab(player, tabs)
 end
 
 local function append_level_up_detail_rows(rows, entry, player)
+    local StatSystem = Registry.resolve("systems", "stats")
     if not entry then
         return
     end
@@ -525,6 +572,7 @@ local function append_level_up_detail_rows(rows, entry, player)
 end
 
 local function build_level_up_rows(player)
+    local ClassSystem = Registry.resolve("systems", "class")
     local rows = {}
     local tabs = ClassSystem.get_level_up_choices(player) or {}
     local active_tab = find_level_up_tab(player, tabs)
@@ -713,8 +761,10 @@ function UI.build_widget(id, context)
     return widget
 end
 
-function UI.build(context)
+function UI.build(context, settings)
     context = normalize_context(context)
+    UI._layout_settings = settings or context.settings or G_settings
+    UI._right_column_width = nil
 
     local built_widgets = {}
     local ids = {}
@@ -736,25 +786,34 @@ function UI.build(context)
         return left._slot < right._slot
     end)
 
+    local pending_widgets = {}
+    UI._right_column_width = measure_box_width(UI.layout.right_column_width)
     for _, id in ipairs(ids) do
-        local definition = UI.widgets[id]
         local widget = UI.build_widget(id, context)
-
         if widget and widget.lines then
-            if definition.position then
-                local x, y = definition.position(context, widget, built_widgets)
+            table.insert(pending_widgets, { widget = widget, definition = UI.widgets[id] })
+            if UI._layout_settings and UI._layout_settings.sprite_rendering and UI.widgets[id].column == "right" then
+                UI._right_column_width = math.max(UI._right_column_width, measure_widget(widget).width)
+            end
+        end
+    end
 
-                if x ~= nil then
-                    widget.x = x
-                end
+    for _, entry in ipairs(pending_widgets) do
+        local widget = entry.widget
+        local definition = entry.definition
+        if definition.position then
+            local x, y = definition.position(context, widget, built_widgets)
 
-                if y ~= nil then
-                    widget.y = y
-                end
+            if x ~= nil then
+                widget.x = x
             end
 
-            table.insert(built_widgets, widget)
+            if y ~= nil then
+                widget.y = y
+            end
         end
+
+        table.insert(built_widgets, widget)
     end
 
     return built_widgets
@@ -997,6 +1056,7 @@ UI.register("inventory", {
 
 UI.register("item_details", {
     order = 26,
+    column = "right",
     position = function(context, widget, widgets)
         local player = context.player
 
@@ -1024,6 +1084,7 @@ UI.register("item_details", {
 
 UI.register("mods", {
     order = 23,
+    column = "right",
     position = function(_, widget, widgets)
         return UI.right_column_x(widget), UI.align_with(widgets, "inventory", UI.below(widgets, "status"))
     end,
@@ -1069,6 +1130,33 @@ UI.register("level_up", {
     end,
 })
 
+UI.register("interaction", {
+    order = 110,
+    position = function(_, widget)
+        local screen_width, screen_height = get_screen_size()
+        local size = measure_widget(widget)
+
+        return math.floor((screen_width - size.width) / 2), math.floor((screen_height - size.height) / 2)
+    end,
+    visible = function(context)
+        local player = context.player
+
+        return player
+            and player.ui
+            and player.ui.interaction_open
+    end,
+    build = function(context)
+        local player = context.player
+        local target = player.ui.interaction_target
+        local rows = build_interaction_rows(player)
+        local title = target and target.name or "Interact"
+
+        return UI.box(title, 40, math.max(#rows + 2, 8), rows, {
+            background = { 0, 0, 0, 0.9 }
+        })
+    end,
+})
+
 UI.register("controls", {
     order = 30,
     position = function(_, widget, widgets)
@@ -1081,7 +1169,19 @@ UI.register("controls", {
         local player = context.player
         local content
 
-        if player and player.ui and player.ui.level_up_open then
+        if player and player.ui and player.ui.interaction_open then
+            content = {
+                {
+                    { text = " UP/DOWN   select", color = Colors.reset }
+                },
+                {
+                    { text = " E/ENTER   choose", color = Colors.reset }
+                },
+                {
+                    { text = " ESC       close", color = Colors.reset }
+                },
+            }
+        elseif player and player.ui and player.ui.level_up_open then
             content = {
                 {
                     { text = " LEFT/RIGHT tab", color = Colors.reset }

@@ -36,4 +36,29 @@ function TableUtils.append_unique(list, value)
 	end
 end
 
+function TableUtils.assert_data_only(value, path, seen)
+	local value_type = type(value)
+	path = path or "value"
+
+	assert(
+		value_type ~= "function" and value_type ~= "thread" and value_type ~= "userdata",
+		path .. " must contain data only"
+	)
+
+	if value_type ~= "table" then
+		return
+	end
+
+	seen = seen or {}
+	assert(not seen[value], path .. " must not contain cyclic references")
+	seen[value] = true
+
+	for key, nested in pairs(value) do
+		TableUtils.assert_data_only(key, path .. " key", seen)
+		TableUtils.assert_data_only(nested, path .. "." .. tostring(key), seen)
+	end
+
+	seen[value] = nil
+end
+
 return TableUtils

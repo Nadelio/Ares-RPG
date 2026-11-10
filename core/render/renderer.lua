@@ -1,6 +1,7 @@
 local TileStyles = require("core.render.tile_styles")
 local Colors = require("core.render.colors")
 local RarityColors = require("core.render.raritycolors")
+local Sprites = require("core.render.sprites")
 
 local Renderer = {}
 
@@ -8,6 +9,34 @@ local object_map = {}
 local entity_map = {}
 local ghost_map = {}
 local buffer = {}
+
+local function build_tile_segment(x, y, map)
+    local tile = map:get(x, y)
+
+    if tile and TileStyles[tile.type] then
+        local style = TileStyles[tile.type](x, y, map)
+
+        -- Keep glyph-only tile styles supplied by mods working.
+        if type(style) == "string" then
+            style = { glyph = style }
+        end
+
+        return {
+            text = style.glyph,
+            fg = style.fg or Colors.reset,
+            bg = style.bg,
+            italics = style.italics,
+            bold = style.bold,
+            underline = style.underline,
+            sprite = style.sprite
+        }
+    end
+
+    return {
+        text = " ",
+        fg = Colors.reset
+    }
+end
 
 function Renderer.build(world, map, preview, player_pos, cursor_direction)
     for k in pairs(object_map) do object_map[k] = nil end
@@ -65,13 +94,18 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
                     bg = entity.renderable.bg,
                     italics = entity.renderable.italics,
                     bold = entity.renderable.bold,
-                    underline = entity.renderable.underline
+                    underline = entity.renderable.underline,
+                    invert = entity.interaction_selected,
+                    sprite = entity.renderable.sprite,
+                    --? sprite mode draws the map tile underneath the entity
+                    under = build_tile_segment(x, y, map)
                 }
 
             elseif ghost_map[key] then
                 segment = {
                     text = ".",
                     fg = Colors.orange,
+                    under = build_tile_segment(x, y, map)
                 }
 
             elseif object_map[key] then
@@ -91,7 +125,9 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
                         italics = object.renderable.italics,
                         bold = object.renderable.bold,
                         underline = object.renderable.underline,
-                        invert = object.interactable.selected
+                        invert = object.interactable.selected,
+                        sprite = object.renderable.sprite,
+                        under = build_tile_segment(x, y, map)
                     }
                 else
                     segment = {
@@ -100,24 +136,14 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
                         bg = object.renderable.bg,
                         italics = object.renderable.italics,
                         bold = object.renderable.bold,
-                        underline = object.renderable.underline
+                        underline = object.renderable.underline,
+                        sprite = object.renderable.sprite,
+                        under = build_tile_segment(x, y, map)
                     }
                 end
 
             else
-                local tile = map:get(x, y)
-
-                if tile and TileStyles[tile.type] then
-                    segment = {
-                        text = TileStyles[tile.type](x, y, map),
-                        fg = Colors.reset
-                    }
-                else
-                    segment = {
-                        text = " ",
-                        fg = Colors.reset
-                    }
-                end
+                segment = build_tile_segment(x, y, map)
             end
 
             if cursor_key and key == cursor_key then
@@ -133,9 +159,55 @@ function Renderer.build(world, map, preview, player_pos, cursor_direction)
     return buffer
 end
 
-function Renderer.draw(buffer)
+local function draw_cell(segment, x, y, cell)
+    if segment.bg then
+        love.graphics.setColor(segment.bg)
+        love.graphics.rectangle("fill", x, y, cell, cell)
+    end
+
+    love.graphics.setColor(segment.fg or Colors.reset)
+    Sprites.draw(segment.sprite or Sprites.DEFAULT_SPRITE, x, y, cell, cell)
+end
+
+local function draw_sprites(buffer, settings)
+    local cell = settings.sprite_resolution or 16
+
+    for row, line in ipairs(buffer) do
+        local drawY = (row - 1) * cell
+
+        for col, segment in ipairs(line) do
+            local drawX = (col - 1) * cell
+
+            if segment.under then
+                --? Draw the map tile first so transparent pixels in the
+                --? entity/object sprite show the map underneath.
+                --? The overlaid sprite skips its own bg to not cover the tile.
+                draw_cell(segment.under, drawX, drawY, cell)
+
+                love.graphics.setColor(segment.fg or Colors.reset)
+                Sprites.draw(segment.sprite or Sprites.DEFAULT_SPRITE, drawX, drawY, cell, cell)
+            else
+                draw_cell(segment, drawX, drawY, cell)
+            end
+
+            if segment.invert then
+                love.graphics.setColor(Colors.cursor[1], Colors.cursor[2], Colors.cursor[3], 0.4)
+                love.graphics.rectangle("fill", drawX, drawY, cell, cell)
+            end
+        end
+    end
+
+    love.graphics.setColor(1, 1, 1)
+end
+
+function Renderer.draw(buffer, settings)
+    if settings and settings.sprite_rendering then
+        draw_sprites(buffer, settings)
+        return
+    end
+
     local font = love.graphics.getFont()
-    local lineHeight = font:getHeight() + 3
+    local lineHeight = font:getHeight()
 
     for row, line in ipairs(buffer) do
         local x = 0

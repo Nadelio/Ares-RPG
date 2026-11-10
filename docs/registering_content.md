@@ -89,7 +89,7 @@ return TeleportMovement
 ```
 
 > [!NOTE]
-> `overwrite` always emits a `warn(...)` to the console so you have a record of what was replaced, if you see an unexpected warning at startup, check if one of your mods is overwriting something it shouldn't be.
+> `overwrite` always prints a `Warning: ...` message to the console so you have a record of what was replaced, if you see an unexpected warning at startup, check if one of your mods is overwriting something it shouldn't be.
 
 ---
 
