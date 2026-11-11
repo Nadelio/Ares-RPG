@@ -71,11 +71,14 @@ jobs:
         - name: Build executable
           run: LOVE_PATH=love.app bash build.sh
 
+        - name: Package app (preserves symlinks and executable bits)
+          run: cd dist && zip -ry ../AresRPG-MacOS.zip .
+
         - name: Upload artifact
           uses: actions/upload-artifact@v4
           with:
             name: AresRPG-macOS
-            path: dist/
+            path: AresRPG-MacOS.zip
 
     release:
         runs-on: ubuntu-latest
@@ -119,7 +122,7 @@ jobs:
           run: |
             cd artifacts/windows && zip -r ../../AresRPG-Windows.zip . && cd ../..
             cp artifacts/linux/AresRPG AresRPG-Linux && chmod +x AresRPG-Linux
-            cd artifacts/macos && zip -r ../../AresRPG-MacOS.zip AresRPG.app && cd ../..
+            cp artifacts/macos/AresRPG-MacOS.zip AresRPG-MacOS.zip
 
         - name: Create release
           uses: softprops/action-gh-release@v2
