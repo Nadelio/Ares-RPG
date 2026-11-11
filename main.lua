@@ -14,29 +14,32 @@ local UIRenderer = require("core.render.ui_renderer")
 
 local loaded_mods = {}
 
--- TODO: [WIP] class system
-    -- TODO: Add weapon/armor advantage/disadvantage
-    --? [TEST] enemy advantage/disadvantage
-    --? [TEST] weapons/armor advantage/disadvantage
-    --? [TEST] unlocked skills, interactions, spells, etc
-
 -- TODO: combat system enhancements and enemies
     --? Death state for both the player and npcs/enemies
         --? Can't move and gain a new interaction to view their inventory like a chest
     --? Add weapon/armor advantage/disadvantage to combat resolution
     --? Add interaction and combat radius highlights
     --? Add concrete status effects and items that apply them
-
--- TODO: save system (serialize game state)
+-- TODO: [WIP] class system
+    -- TODO: Add weapon/armor advantage/disadvantage
+    --? [TEST] enemy advantage/disadvantage
+    --? [TEST] weapons/armor advantage/disadvantage
+    --? [TEST] unlocked skills, interactions, spells, etc
 -- TODO: implement all base stats (for combat and looting)
     --? Need to modify loot tables to bias towards higher rarity items
     --? Need to mess with the rarity colors stuff and make it part of the Item component as an enum
 
--- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
-
--- TODO: Rework UI and input systems so they don't need hard-coded inputs for every new UI widget
-
+-- TODO: save system (serialize game state)
 -- TODO: Make player and enemy prefabs
+
+-- TODO: Rework core.input to mimic Godot's Input Actions system instead of raw keystrokes
+    --? Register input actions and their respective keystroke(s)
+    --? core.input now has `Input.is_action_pressed(action)`, `Input.is_action_just_pressed(action)`, `Input.is_action_released(action)`, and `Input.is_action_just_released(action)`
+
+-- TODO: Rework UI and input systems so they don't need hard-coded handling for every new UI widget
+--? Probably should also refactor core.systems.input to more cleanly work with all game states under the hood
+
+-- TODO: spell/skill/action menu (only available if >1 spell/skill/action)
 
 -- TODO: [BUG] On Linux and MacOS releases, window scale is backwards, solution: "render to an offscreen canvas"
     --? love.graphics.newCanvas(), love.graphics.setCanvas()
@@ -45,7 +48,6 @@ local loaded_mods = {}
 
 -- TODO: Main/Start menu, start-up glitch effect (see ./ideas.md)
 -- TODO: Pause/Exit menu (for when in a game)
---? Probably should also refactor core.systems.input to more cleanly work with certain game states
 
 G_logger = {}
 G_map = {}

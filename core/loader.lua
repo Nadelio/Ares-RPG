@@ -13,18 +13,23 @@ local function count_keys(tbl)
     return count
 end
 
-local function require_category(category, directory)
+local function require_category(category, directory, loaded)
+    loaded = loaded or {}
+
     if not love.filesystem.getInfo(directory, "directory") then
-        return {}
+        return loaded
     end
 
     local items = love.filesystem.getDirectoryItems(directory)
-    local loaded = {}
 
     table.sort(items)
 
     for _, item in ipairs(items) do
-        if item:sub(-4) == ".lua" then
+        local item_path = directory .. "/" .. item
+
+        if love.filesystem.getInfo(item_path, "directory") then
+            require_category(category, item_path, loaded)
+        elseif item:sub(-4) == ".lua" then
             local name = item:sub(1, -5)
             local module_path = directory:gsub("/", ".") .. "." .. name
 
