@@ -62,8 +62,15 @@ case "$PLATFORM" in
         ;;
     macos)
         echo "Building MacOS app bundle..."
-        cp -r "$LOVE_PATH" "$OUTPUT_DIR/$GAME_NAME.app"
+        cp -R "$LOVE_PATH" "$OUTPUT_DIR/$GAME_NAME.app"
         cp "$LOVE_FILE" "$OUTPUT_DIR/$GAME_NAME.app/Contents/Resources/"
+
+        PLIST="$OUTPUT_DIR/$GAME_NAME.app/Contents/Info.plist"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleName $GAME_NAME" "$PLIST" || true
+        /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.nadelio.$(echo "$GAME_NAME" | tr '[:upper:]' '[:lower:]')" "$PLIST" || true
+        /usr/libexec/PlistBuddy -c "Delete :UTExportedTypeDeclarations" "$PLIST" 2>/dev/null || true
+
+        codesign --force --deep --sign - "$OUTPUT_DIR/$GAME_NAME.app" 2>/dev/null || true
         echo "  $OUTPUT_DIR/$GAME_NAME.app"
         ;;
     linux)
