@@ -2,6 +2,10 @@ local Registry = require("core.registry")
 
 local InputSystem = {}
 
+local function is_action(event, action)
+    return event ~= nil and event.actions ~= nil and event.actions[action] == true
+end
+
 local function clamp_slot(index, item_count)
     local max_slot = math.max(1, item_count or 0)
 
@@ -89,14 +93,14 @@ local function close_interaction_ui(player)
     player.ui.interaction_selected_index = 1
 end
 
-local function handle_interaction_input(player, key, Events)
+local function handle_interaction_input(player, event, Events)
     local options = player.ui.interaction_options or {}
 
-    if key == "up" then
+    if is_action(event, "ui_up") then
         player.ui.interaction_selected_index = clamp_slot(player.ui.interaction_selected_index - 1, #options)
-    elseif key == "down" then
+    elseif is_action(event, "ui_down") then
         player.ui.interaction_selected_index = clamp_slot(player.ui.interaction_selected_index + 1, #options)
-    elseif key == "escape" or key == "q" then
+    elseif is_action(event, "ui_cancel") then
         local target = player.ui.interaction_target
         close_interaction_ui(player)
         Events.emit("interaction_resolved", {
@@ -104,7 +108,7 @@ local function handle_interaction_input(player, key, Events)
             target = target,
             cancelled = true,
         })
-    elseif key == "e" or key == "return" then
+    elseif is_action(event, "ui_accept") then
         local choice = options[player.ui.interaction_selected_index]
 
         if not choice then
@@ -210,8 +214,8 @@ local function handle_level_up_confirm(player, Events)
     sync_level_up_menu(player)
 end
 
-local function handle_level_up_input(player, key, Events)
-    if key == "up" then
+local function handle_level_up_input(player, event, Events)
+    if is_action(event, "ui_up") then
         local tabs = get_level_up_tabs(player)
         local active_tab
 
@@ -226,7 +230,7 @@ local function handle_level_up_input(player, key, Events)
             player.ui.level_up_selected_index = math.max(1, player.ui.level_up_selected_index - 1)
             player.ui.level_up_selected_index = clamp_slot(player.ui.level_up_selected_index, #active_tab.entries)
         end
-    elseif key == "down" then
+    elseif is_action(event, "ui_down") then
         local tabs = get_level_up_tabs(player)
         local active_tab
 
@@ -241,13 +245,13 @@ local function handle_level_up_input(player, key, Events)
             local max_slot = math.max(1, #active_tab.entries)
             player.ui.level_up_selected_index = math.min(max_slot, player.ui.level_up_selected_index + 1)
         end
-    elseif key == "left" then
+    elseif is_action(event, "ui_left") then
         cycle_level_up_tab(player, -1)
-    elseif key == "right" then
+    elseif is_action(event, "ui_right") then
         cycle_level_up_tab(player, 1)
-    elseif key == "e" or key == "return" then
+    elseif is_action(event, "ui_accept") then
         handle_level_up_confirm(player, Events)
-    elseif key == "q" or key == "l" then
+    elseif is_action(event, "ui_cancel") or is_action(event, "level_up_toggle") then
         close_level_up_ui(player)
     end
 
@@ -333,14 +337,13 @@ function InputSystem.init(Events, world, map, logger)
     -- TODO: Implement movement stat rules
     Events.on("input", function(e)
 
-        local key = e.key
         local player = e.entity
         local chest_open = player.ui.chest_open and player.ui.chest_target and player.ui.chest_target.loot_table and player.ui.chest_target.loot_table.inventory
 
         player.turn_buffer = player.turn_buffer or TurnBuffer.new()
 
         if player.ui.interaction_open then
-            handle_interaction_input(player, key, Events)
+            handle_interaction_input(player, e, Events)
             Events.emit("preview_request", {
                 entity = player,
                 buffer = player.turn_buffer:all()
@@ -349,7 +352,7 @@ function InputSystem.init(Events, world, map, logger)
         end
 
         if player.ui.level_up_open then
-            handle_level_up_input(player, key, Events)
+            handle_level_up_input(player, e, Events)
             Events.emit("preview_request", {
                 entity = player,
                 buffer = player.turn_buffer:all()
@@ -357,7 +360,7 @@ function InputSystem.init(Events, world, map, logger)
             return
         end
 
-        if key == "l" and open_level_up_ui(player) then
+        if is_action(e, "level_up_toggle") and open_level_up_ui(player) then
             Events.emit("preview_request", {
                 entity = player,
                 buffer = player.turn_buffer:all()
@@ -365,45 +368,45 @@ function InputSystem.init(Events, world, map, logger)
             return
         end
 
-        if key == "w" then
+        if is_action(e, "move_up") then
             if chest_open then
                 close_chest_ui(player)
             end
 
             player.turn_buffer:add({ type = "move", dx = 0, dy = -1 })
 
-        elseif key == "s" then
+        elseif is_action(e, "move_down") then
             if chest_open then
                 close_chest_ui(player)
             end
 
             player.turn_buffer:add({ type = "move", dx = 0, dy = 1 })
 
-        elseif key == "a" then
+        elseif is_action(e, "move_left") then
             if chest_open then
                 close_chest_ui(player)
             end
 
             player.turn_buffer:add({ type = "move", dx = -1, dy = 0 })
 
-        elseif key == "d" then
+        elseif is_action(e, "move_right") then
             if chest_open then
                 close_chest_ui(player)
             end
 
             player.turn_buffer:add({ type = "move", dx = 1, dy = 0 })
 
-        elseif key == "backspace" then
+        elseif is_action(e, "turn_undo") then
             player.turn_buffer:pop()
 
-        elseif key == "i" then
+        elseif is_action(e, "inventory_toggle") then
             if chest_open then
                 close_chest_ui(player, false)
             else
                 player.ui.inventory_open = not player.ui.inventory_open
             end
 
-        elseif key == "up" then
+        elseif is_action(e, "ui_up") then
             if chest_open and player.ui.inventory_focus == "chest" then
                 player.ui.chest_selected_slot = math.max(1, player.ui.chest_selected_slot - 1)
             elseif player.ui.inventory_open then
@@ -411,19 +414,19 @@ function InputSystem.init(Events, world, map, logger)
             else
                 player.ui.selected_tile.y = math.max(1, player.ui.selected_tile.y - 1)
             end
-        elseif key == "right" then
+        elseif is_action(e, "ui_right") then
             if chest_open then
                 player.ui.inventory_focus = "chest"
             else
                 player.ui.selected_tile.x = math.min(3, player.ui.selected_tile.x + 1)
             end
-        elseif key == "left" then
+        elseif is_action(e, "ui_left") then
             if chest_open then
                 player.ui.inventory_focus = "player"
             else
                 player.ui.selected_tile.x = math.max(1, player.ui.selected_tile.x - 1)
             end
-        elseif key == "down" then
+        elseif is_action(e, "ui_down") then
             if chest_open and player.ui.inventory_focus == "chest" then
                 local item_count = #player.ui.chest_target.loot_table.inventory.items
                 player.ui.chest_selected_slot = math.min(math.max(1, item_count), player.ui.chest_selected_slot + 1)
@@ -435,7 +438,7 @@ function InputSystem.init(Events, world, map, logger)
             else
                 player.ui.selected_tile.y = math.min(3, player.ui.selected_tile.y + 1)
             end
-        elseif key == "e" then
+        elseif is_action(e, "interact") then
             if chest_open then
                 local chest = player.ui.chest_target
                 local moved = false
@@ -492,10 +495,10 @@ function InputSystem.init(Events, world, map, logger)
                 end
             end
 
-        elseif key == "q" then
+        elseif is_action(e, "ui_cancel") or is_action(e, "inventory_drop") then
             if chest_open then
                 close_chest_ui(player)
-            elseif player.ui.inventory_open then
+            elseif player.ui.inventory_open and is_action(e, "inventory_drop") then
                 local item = player.inventory.items[player.ui.selected_slot]
 
                 if item then
@@ -508,7 +511,7 @@ function InputSystem.init(Events, world, map, logger)
                 end
             end
 
-        elseif key == "return" then
+        elseif is_action(e, "turn_commit") then
             Events.emit("turn_commit", {
                 entity = player,
                 actions = player.turn_buffer:all(),
@@ -522,7 +525,7 @@ function InputSystem.init(Events, world, map, logger)
 
         clamp_inventory_slots(player)
 
-        if key == "ctrl+z" then
+        if is_action(e, "turn_clear") then
             player.turn_buffer:clear()
             InteractionSystem.clear_selection(world, map)
         end

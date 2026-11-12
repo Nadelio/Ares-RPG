@@ -12,9 +12,10 @@ Parameters: None
 
 ## InputSystem
 ### `input`
-This event is emitted on every keypressed event in Love2D\
+This event is emitted once per update for each queued keypressed event in Love2D\
 Parameters:
-- `key`, the key pressed
+- `key`, the raw key combo pressed (e.g. `"e"`, `"ctrl+z"`)
+- `actions`, a set of input action names the keypress matched (e.g. `e.actions["interact"] == true`), as registered in `core.input_map` (see [Custom Inputs/Keybinds](../core/custom_inputs.md))
 - `entity`, the entity that should be affected by keypress (by default this is the player)
 
 ## HealthSystem

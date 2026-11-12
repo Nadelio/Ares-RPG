@@ -32,10 +32,6 @@ local loaded_mods = {}
 -- TODO: save system (serialize game state)
 -- TODO: Make player and enemy prefabs
 
--- TODO: Rework core.input to mimic Godot's Input Actions system instead of raw keystrokes
-    --? Register input actions and their respective keystroke(s)
-    --? core.input now has `Input.is_action_pressed(action)`, `Input.is_action_just_pressed(action)`, `Input.is_action_released(action)`, and `Input.is_action_just_released(action)`
-
 -- TODO: Rework UI and input systems so they don't need hard-coded handling for every new UI widget
 --? Probably should also refactor core.systems.input to more cleanly work with all game states under the hood
 
@@ -136,11 +132,12 @@ function love.draw()
 end
 
 function love.update(dt)
-    local key = Input.poll()
+    local event = Input.poll()
 
-    if key then
+    if event then
         Events.emit("input", {
-            key = key,
+            key = event.key,
+            actions = event.actions,
             entity = G_player
         })
     end
@@ -149,6 +146,8 @@ function love.update(dt)
 
     screen = Renderer.build(G_world, G_map, G_player.turn_preview, G_player.position, G_player.ui.selected_tile)
     ui = UIRenderer.build(build_ui_context(), G_settings)
+
+    Input.end_frame()
 end
 
 function love.quit()
